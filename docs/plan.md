@@ -121,3 +121,9 @@ Build: tune `config.py` (trip length, speeds, colours, volume), and finalize the
 Decide on the cockpit overlay (still an open question in CLAUDE.md).
 Automated tests: the full suite passes, and a headless 3-loop soak test runs with no errors or growing memory.
 Manual: a supervised playtest with the 3-year-old. Note confusion, fear or boredom, and adjust.
+
+## Sign-off log
+
+| Step | Signed off by | Date | Notes |
+|------|---------------|------|-------|
+| 0 | Dave | 2026-11-22 | Blue window opens, Esc quits. 6/6 tests pass. |
