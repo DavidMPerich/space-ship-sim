@@ -26,16 +26,6 @@ def _mix(low, high, fraction):
     return low + (high - low) * fraction
 
 
-def streak_length(speed):
-    """Streak length as a share of the star's depth."""
-    return _mix(config.STREAK_SLOW, config.STREAK_FAST, speed_fraction(speed))
-
-
-def tail_depth(z, speed):
-    """Depth of the trailing end of a star's streak."""
-    return min(z * (1 + streak_length(speed)), config.STAR_FAR)
-
-
 def vanishing_point(steer_offset):
     """Screen point the rocket flies toward. Steering right slides the scene left, like turning your head."""
     return (config.SCREEN_WIDTH / 2 - steer_offset * config.STEER_SHIFT, config.SCREEN_HEIGHT / 2)
@@ -85,16 +75,16 @@ class Starfield:
                 star.z += config.STAR_FAR - config.STAR_NEAR
                 self._place(star)
 
-    def draw(self, screen, speed, steer_offset):
+    def draw(self, screen, steer_offset):
         center = vanishing_point(steer_offset)
         area = screen.get_rect().inflate(config.STAR_MAX_SIZE * 2, config.STAR_MAX_SIZE * 2)
         for star in self.stars:
-            tail = project(star.x, star.y, tail_depth(star.z, speed), center)
-            if not area.collidepoint(tail):
-                continue  # the head is even further out
-            head = project(star.x, star.y, star.z, center)
+            position = project(star.x, star.y, star.z, center)
+            if not area.collidepoint(position):
+                continue
             size = star_size(star.z)
             color = star_color(star)
-            pygame.draw.line(screen, color, tail, head, size)
             if size > 2:
-                pygame.draw.circle(screen, color, head, size / 2)  # round end for big stars
+                pygame.draw.circle(screen, color, position, size / 2)
+            else:
+                screen.fill(color, (position[0], position[1], size, size))  # too small for a circle

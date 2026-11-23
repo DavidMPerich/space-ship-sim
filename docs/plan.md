@@ -43,13 +43,14 @@ Automated tests:
 Manual: the overlay shows speed and distance responding smoothly to the keys.
 
 ### Step 3: Starfield (`game/starfield.py`)
-Build: 3D-projected stars that stream outward, with streak length tied to speed and the vanishing point shifted by steering.
+Build: 3D-projected stars that stream outward, with star speed tied to rocket speed and the vanishing point shifted by steering.
+Stars are round dots in white to soft yellow (no streaks; see the warp speed idea below).
 Star count comes from `config.py`.
 Automated tests:
 - The star count stays constant, and stars that pass the camera are recycled.
 - The projection maps the centre star to the vanishing point, and the vanishing point moves with steering.
 - A frame update at the maximum count stays under a time budget on a desktop (regression guard).
-Manual: flying feels smooth, faster means streakier, steering visibly shifts the view, and nothing flickers.
+Manual: flying feels smooth, faster means quicker stars, steering visibly shifts the view, and nothing flickers.
 
 ### Step 4: Flight scene wired into `main.py`
 Build: a game loop using `dt` from `clock.tick(FPS)` that feeds input → rocket → starfield and draws each frame.
@@ -121,6 +122,9 @@ Build: tune `config.py` (trip length, speeds, colours, volume), and finalize the
 Decide on the cockpit overlay (still an open question in CLAUDE.md).
 Automated tests: the full suite passes, and a headless 3-loop soak test runs with no errors or growing memory.
 Manual: a supervised playtest with the 3-year-old. Note confusion, fear or boredom, and adjust.
+
+## Ideas for later
+- Warp speed effect: stretch the stars into streaks.
 
 ## Sign-off log
 

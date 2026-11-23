@@ -63,9 +63,7 @@ def test_stars_stream_outward():
     assert math.dist(near, center) > math.dist(far, center)
 
 
-def test_faster_means_longer_streaks_and_quicker_stars():
-    lengths = [starfield.streak_length(s) for s in (config.MIN_SPEED, config.START_SPEED, config.MAX_SPEED)]
-    assert lengths[0] < lengths[1] < lengths[2]
+def test_faster_means_quicker_stars():
     slow, fast = make_field(1), make_field(1)
     slow.stars[0].z = fast.stars[0].z = 0.8
     slow.update(config.MIN_SPEED, 1 / 60)
@@ -77,10 +75,14 @@ def test_new_stars_start_invisible():
     assert starfield.star_color(Star(0, 0, config.STAR_FAR, (255, 255, 255))) == config.BACKGROUND_COLOR
 
 
-def test_whole_streak_is_off_screen_before_recycling():
-    """Holds in every direction, at top speed and full steering."""
-    tail = starfield.tail_depth(config.STAR_NEAR, config.MAX_SPEED)
-    reach = config.STAR_MIN_RADIUS * config.STAR_FOCAL / tail
+def test_star_colors_are_white_to_soft_yellow():
+    for red, green, blue in config.STAR_COLORS:
+        assert red >= green >= blue >= 200
+
+
+def test_stars_are_off_screen_before_recycling():
+    """Holds in every direction, at full steering."""
+    reach = config.STAR_MIN_RADIUS * config.STAR_FOCAL / config.STAR_NEAR
     farthest_corner = math.hypot(config.SCREEN_WIDTH / 2 + config.STEER_SHIFT, config.SCREEN_HEIGHT / 2)
     assert reach > farthest_corner
 
@@ -90,14 +92,14 @@ def test_hiccups_and_extreme_values_are_harmless():
     field = make_field()
     for speed, dt, steer in ((0, 0, 0), (9, -1, -1), (1000, 60, 1), (-5, 0.5, 5)):
         field.update(speed, dt)
-        field.draw(screen, speed, steer)
+        field.draw(screen, steer)
     assert all(config.STAR_NEAR < s.z <= config.STAR_FAR for s in field.stars)
 
 
 def test_drawing_puts_stars_on_screen():
     screen = make_screen()
     blank = pygame.image.tobytes(screen, "RGB")
-    make_field().draw(screen, config.START_SPEED, 0.0)
+    make_field().draw(screen, 0.0)
     assert pygame.image.tobytes(screen, "RGB") != blank
 
 
@@ -108,7 +110,7 @@ def test_frame_stays_under_time_budget():
     for _ in range(60):
         start = time.perf_counter()
         field.update(config.MAX_SPEED, 1 / 60)
-        field.draw(screen, config.MAX_SPEED, 0.5)
+        field.draw(screen, 0.5)
         times.append(time.perf_counter() - start)
     times.sort()
     assert times[len(times) // 2] < 0.008  # median; half a 60 FPS frame on a desktop

@@ -86,7 +86,7 @@ def run(argv=None):
             stars.update(rocket.speed, dt)
 
             screen.fill(config.BACKGROUND_COLOR)
-            stars.draw(screen, rocket.speed, rocket.steer_offset)
+            stars.draw(screen, rocket.steer_offset)
             if font:
                 draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(rocket))
             pygame.display.flip()

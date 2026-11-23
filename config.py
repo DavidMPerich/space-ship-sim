@@ -38,9 +38,7 @@ STAR_MAX_RADIUS = 1.2
 STAR_FOCAL = 640          # pixels; higher = more zoomed in
 STAR_SLOW_RATE = 0.15     # depth per second at MIN_SPEED
 STAR_FAST_RATE = 0.5      # depth per second at MAX_SPEED
-STREAK_SLOW = 0.02        # streak length at MIN_SPEED, as a share of the star's depth
-STREAK_FAST = 0.3         # streak length at MAX_SPEED, as a share of the star's depth
 STAR_FADE_DEPTH = 0.4     # stars reach full brightness after travelling this far
 STAR_MAX_SIZE = 10        # pixels, for the nearest stars
-STAR_COLORS = [(255, 255, 255), (255, 240, 170), (170, 215, 255), (255, 190, 220)]
+STAR_COLORS = [(255, 255, 255), (255, 253, 245), (255, 250, 230), (255, 246, 214)]  # white to soft yellow
 STEER_SHIFT = 250         # pixels the view slides at full steering
