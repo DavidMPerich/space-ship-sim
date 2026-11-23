@@ -1,4 +1,4 @@
-"""3D-projected starfield: stars stream outward from a vanishing point that shifts with steering."""
+"""3D-projected starfield: stars stream outward from the screen center and sweep sideways in turns."""
 
 import math
 import random
@@ -26,9 +26,9 @@ def _mix(low, high, fraction):
     return low + (high - low) * fraction
 
 
-def vanishing_point(steer_offset):
-    """Screen point the rocket flies toward. Steering right slides the scene left, like turning your head."""
-    return (config.SCREEN_WIDTH / 2 - steer_offset * config.STEER_SHIFT, config.SCREEN_HEIGHT / 2)
+def vanishing_point():
+    """Screen point the rocket flies toward: always dead ahead, whatever the heading."""
+    return (config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2)
 
 
 def project(x, y, z, center):
@@ -65,18 +65,31 @@ class Starfield:
         radius = self.rng.uniform(config.STAR_MIN_RADIUS, config.STAR_MAX_RADIUS)
         star.x = math.cos(angle) * radius
         star.y = math.sin(angle) * radius
+        if abs(star.y) < config.STAR_MIN_HEIGHT:
+            star.y = math.copysign(config.STAR_MIN_HEIGHT, star.y)
 
-    def update(self, speed, dt):
+    def _turn(self, star, angle):
+        """Sweep a star sideways. One that leaves on one side comes back from off screen on the other."""
+        star.x -= angle * star.z
+        edge = config.STAR_TURN_EDGE
+        side = 1 if angle > 0 else -1  # turning right brings new stars in from the right
+        if star.x * side < -edge * star.z:
+            star.x = side * star.z * (edge + self.rng.uniform(0, config.STAR_MAX_RADIUS))
+
+    def update(self, speed, dt, turn_rate=0.0):
         dt = max(0.0, min(config.MAX_FRAME_TIME, dt))
         step = _mix(config.STAR_SLOW_RATE, config.STAR_FAST_RATE, speed_fraction(speed)) * dt
+        angle = turn_rate * dt
         for star in self.stars:
             star.z -= step
             if star.z <= config.STAR_NEAR:
                 star.z += config.STAR_FAR - config.STAR_NEAR
                 self._place(star)
+            if angle:
+                self._turn(star, angle)
 
-    def draw(self, screen, steer_offset):
-        center = vanishing_point(steer_offset)
+    def draw(self, screen):
+        center = vanishing_point()
         area = screen.get_rect().inflate(config.STAR_MAX_SIZE * 2, config.STAR_MAX_SIZE * 2)
         for star in self.stars:
             position = project(star.x, star.y, star.z, center)

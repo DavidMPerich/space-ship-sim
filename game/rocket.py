@@ -1,4 +1,4 @@
-"""Rocket state: speed, steering offset and distance to the moon. Pure logic, no drawing."""
+"""Rocket state: speed, turning, heading and distance to the moon. Pure logic, no drawing."""
 
 import math
 
@@ -24,7 +24,8 @@ class Rocket:
         """Back to the start of a trip."""
         self.speed = config.START_SPEED
         self.target_speed = config.START_SPEED
-        self.steer_offset = 0.0  # -1 = full left, +1 = full right; only affects the view
+        self.steer_offset = 0.0  # smoothed steering: -1 = full left, +1 = full right
+        self.heading = 0.0       # radians turned from straight ahead, in -pi..pi; right is positive
         self.distance = config.TRIP_DISTANCE
         self.arrived = False
 
@@ -32,6 +33,11 @@ class Rocket:
     def progress(self):
         """0 at launch, 1 at the moon."""
         return 1.0 - self.distance / config.TRIP_DISTANCE
+
+    @property
+    def turn_rate(self):
+        """Radians per second, right is positive."""
+        return self.steer_offset * config.TURN_RATE
 
     def update(self, controls, dt):
         """Advance by dt seconds using an InputState."""
@@ -45,6 +51,7 @@ class Rocket:
     def _update_steering(self, controls, dt):
         target = _clamp(controls.steer, -1.0, 1.0)
         self.steer_offset += (target - self.steer_offset) * _ease_fraction(config.STEER_EASE_RATE, dt)
+        self.heading = math.remainder(self.heading + self.turn_rate * dt, math.tau)  # never grows forever
 
     def _update_speed(self, controls, dt):
         throttle = int(controls.faster) - int(controls.slower)  # both held cancels out

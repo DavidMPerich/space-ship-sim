@@ -1,6 +1,7 @@
 """Entry point: set up pygame, run the game loop, quit cleanly."""
 
 import argparse
+import math
 import sys
 
 import pygame
@@ -35,6 +36,7 @@ def rocket_lines(rocket):
     return [
         f"speed: {rocket.speed:.1f} (target {rocket.target_speed:.1f})",
         f"steer offset: {rocket.steer_offset:+.2f}",
+        f"heading: {math.degrees(rocket.heading):+.0f} deg",
         f"distance: {rocket.distance:.1f} ({rocket.progress:.0%} there)",
         f"arrived: {'YES' if rocket.arrived else 'no'}",
     ]
@@ -83,10 +85,10 @@ def run(argv=None):
                 controls.handle_event(event)
             state = controls.state()
             rocket.update(state, dt)
-            stars.update(rocket.speed, dt)
+            stars.update(rocket.speed, dt, rocket.turn_rate)
 
             screen.fill(config.BACKGROUND_COLOR)
-            stars.draw(screen, rocket.steer_offset)
+            stars.draw(screen)
             if font:
                 draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(rocket))
             pygame.display.flip()

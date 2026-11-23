@@ -20,23 +20,33 @@ over realism or complexity.
 
 Avoid adding heavy dependencies. Anything new must install cleanly on Raspberry Pi OS (ARM).
 
-## Project structure (planned)
+## Project status
+
+`docs/plan.md` has the step-by-step build plan and the sign-off log. Work one step at a time, and only
+start the next step after the user signs off the current one. Steps 0–3 (skeleton, keyboard input,
+rocket state, starfield) are signed off.
+
+## Project structure
 
 ```
-rocket-sim/
+Space-Ship-Sim/
 ├── CLAUDE.md
 ├── README.md
 ├── requirements.txt
-├── main.py              # Entry point: init, game loop, scene switching
+├── requirements-dev.txt # Adds pytest; not needed on the Pi
+├── main.py              # Entry point: init, game loop (scene switching planned)
 ├── config.py            # Tunable constants (speeds, distances, colors, FPS, input mapping)
+├── docs/
+│   └── plan.md          # Build plan and sign-off log
 ├── game/
 │   ├── starfield.py     # 3D-projected starfield (the "flying" effect)
-│   ├── rocket.py        # Player state: speed, steering offset, distance to moon
-│   ├── moon.py          # Moon sprite that scales up as distance shrinks
-│   ├── input.py         # Unified input: joystick, buttons, keyboard fallback
-│   ├── audio.py         # Engine rumble, beeps, arrival sounds
-│   └── scenes.py        # Launch countdown → flight → moon arrival → restart
-└── assets/
+│   ├── rocket.py        # Player state: speed, turning, heading, distance to moon
+│   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
+│   ├── moon.py          # (planned) Moon sprite that scales up as distance shrinks
+│   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
+│   └── scenes.py        # (planned) Launch countdown → flight → moon arrival → restart
+├── tests/               # pytest, one file per plan step; runs headless
+└── assets/              # (planned)
     ├── images/
     └── sounds/
 ```
@@ -48,21 +58,28 @@ pip install -r requirements.txt   # on Pi OS, may need --break-system-packages o
 python3 main.py
 ```
 
-- `--windowed` flag (planned): run in a window for development on a desktop machine.
+- `--windowed`: run in a window for development on a desktop machine.
+- `--debug`: show live input and rocket values on screen.
+- `--frames N`: quit after N frames (for headless smoke tests).
+- Tests: `python -m pytest` from the venv (headless; `tests/conftest.py` sets the dummy SDL drivers).
 - **Keyboard fallback** must always work so the game can be developed and tested without the joystick:
-  arrow keys = steer, Space/Up = faster, Down = slower, Esc = quit (Esc is dev-only; see Safety).
+  Left/Right or A/D = steer, Up/Space/W = faster, Down/S = slower, Space/Enter = start,
+  Esc = quit (Esc is dev-only; see Safety).
 
 ## Core gameplay
 
 1. **Launch:** big "3… 2… 1… BLAST OFF!" countdown (start with a button press or automatically).
-2. **Flight:** starfield streams outward from the center. Higher speed makes the stars streak faster.
-   Steering shifts the star field's vanishing point and/or tilts the view.
+2. **Flight:** starfield streams outward from the center. Higher speed makes the stars move faster.
+   Stars are round dots in white to soft yellow, with no streaks (streaks are saved for a possible
+   "warp speed" effect later). Speed stays where it is set when a button is released.
+   Steering really turns the ship: stars sweep sideways, the ship always flies toward the screen center,
+   and the heading holds on release (Step 5 may change this; see Open questions).
 3. **Approach:** the moon starts as a small dot and grows steadily as distance decreases.
    A simple, picture-based progress indicator (a rocket icon moving toward a moon icon) beats numbers.
 4. **Arrival:** celebration (sound, confetti/stars, "You made it to the Moon!"), then auto-restart after a pause.
 
-There is **no failure state**: no crashing, no game over, no timers that punish. Steering can never
-cause the player to miss the moon; it only changes the view and feel.
+There is **no failure state**: no crashing, no game over, no timers that punish. Steering changes
+the ship's heading, but it never changes distance or arrival, so the player can never miss the moon.
 
 ## Design principles (toddler-first)
 
@@ -109,6 +126,8 @@ cause the player to miss the moon; it only changes the view and feel.
 
 ## Open questions / TBD
 
+- How the ship gets back to facing the moon after turning away (decide before Step 5; suggested: it gently
+  turns itself back when the stick is released)
 - Raspberry Pi model and display resolution
 - Exact input hardware (USB arcade encoder vs. GPIO-wired buttons)
 - Whether to add a cockpit frame/overlay

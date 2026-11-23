@@ -26,19 +26,21 @@ MAX_SPEED = 12.0
 THROTTLE_RATE = 4.0       # how fast holding a button moves the target speed (units/s per second)
 SPEED_EASE_RATE = 3.0     # how eagerly speed follows its target (higher = snappier)
 MAX_SPEED_CHANGE = 4.0    # hard limit on speed change (units/s per second)
-STEER_EASE_RATE = 4.0     # how eagerly the view follows the stick (higher = snappier)
+STEER_EASE_RATE = 4.0     # how eagerly turning follows the stick (higher = snappier)
+TURN_RATE = 0.5           # radians per second at full steering (0.5 is a full circle in about 13 s)
 MAX_FRAME_TIME = 0.1      # seconds; longer frames (hiccups) are treated as this long
 
 # Starfield (depth runs from STAR_FAR, where stars fade in, to STAR_NEAR, where they pass the camera)
 STAR_COUNT = 400
 STAR_FAR = 1.0
 STAR_NEAR = 0.03
-STAR_MIN_RADIUS = 0.08    # distance from the flight path; big enough that stars leave the screen before recycling
+STAR_MIN_RADIUS = 0.08    # closest a new star starts to the flight path
 STAR_MAX_RADIUS = 1.2
+STAR_MIN_HEIGHT = 0.018   # gap above/below; big enough that stars leave the screen before recycling
+STAR_TURN_EDGE = 1.05     # x/z just off screen, where stars wrap to the other side while turning
 STAR_FOCAL = 640          # pixels; higher = more zoomed in
 STAR_SLOW_RATE = 0.15     # depth per second at MIN_SPEED
 STAR_FAST_RATE = 0.5      # depth per second at MAX_SPEED
 STAR_FADE_DEPTH = 0.4     # stars reach full brightness after travelling this far
 STAR_MAX_SIZE = 10        # pixels, for the nearest stars
 STAR_COLORS = [(255, 255, 255), (255, 253, 245), (255, 250, 230), (255, 246, 214)]  # white to soft yellow
-STEER_SHIFT = 250         # pixels the view slides at full steering

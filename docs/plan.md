@@ -33,24 +33,28 @@ Automated tests:
 Manual: a debug overlay in the window shows live input values as you press keys.
 
 ### Step 2: Rocket state (`game/rocket.py`)
-Build: speed eases toward a target that is clamped between `MIN_SPEED` and `MAX_SPEED`, steering offset is smoothed,
+Build: speed eases toward a target that is clamped between `MIN_SPEED` and `MAX_SPEED`, steering is smoothed and turns the ship's heading (kept on release),
 distance shrinks with speed × dt, and an `arrived` flag is set. Pure logic, no drawing.
 Automated tests:
 - Speed never leaves the clamp range, and a single frame never jumps more than `config` allows.
 - The same total time gives the same distance at 30 and 60 FPS (frame-rate independence).
 - The trip takes between 60 and 180 s at both the minimum and the maximum speed (trip length tunable).
 - Steering never changes distance or arrival, so there is no way to miss the moon.
+- Heading changes while steering, holds after release, and stays bounded when circling.
 Manual: the overlay shows speed and distance responding smoothly to the keys.
 
 ### Step 3: Starfield (`game/starfield.py`)
-Build: 3D-projected stars that stream outward, with star speed tied to rocket speed and the vanishing point shifted by steering.
+Build: 3D-projected stars that stream outward, with star speed tied to rocket speed.
+Steering turns the ship: stars sweep sideways, and the heading stays where it is left on release.
 Stars are round dots in white to soft yellow (no streaks; see the warp speed idea below).
 Star count comes from `config.py`.
 Automated tests:
 - The star count stays constant, and stars that pass the camera are recycled.
-- The projection maps the centre star to the vanishing point, and the vanishing point moves with steering.
+- Star colours stay between white and soft yellow.
+- Long turns keep the sky full, and stars never pop in or out on screen.
+- The projection maps the centre star to the vanishing point (always the screen centre), and turning sweeps stars sideways.
 - A frame update at the maximum count stays under a time budget on a desktop (regression guard).
-Manual: flying feels smooth, faster means quicker stars, steering visibly shifts the view, and nothing flickers.
+Manual: flying feels smooth, faster means quicker stars, steering visibly turns the ship, and nothing flickers.
 
 ### Step 4: Flight scene wired into `main.py`
 Build: a game loop using `dt` from `clock.tick(FPS)` that feeds input → rocket → starfield and draws each frame.
@@ -59,6 +63,9 @@ Manual: a full keyboard flight is playable end to end (arrival can be just a con
 
 ### Step 5: Moon and progress indicator (`game/moon.py`)
 Build: a moon that grows from a dot as distance shrinks, using pre-rendered or cached sizes.
+The moon's screen position follows the ship's heading (it slides off-centre as the ship turns).
+**Decide first:** the ship can now turn away from the moon, but the trip must never be missable.
+Suggested: on release, the ship gently turns itself back toward the moon (replaces "heading kept on release").
 If the moon image is missing, draw a circle instead. Add a rocket icon that moves along a track toward a moon icon.
 Automated tests:
 - Moon size is monotonic non-decreasing in progress, and full size at arrival.
@@ -133,3 +140,4 @@ Manual: a supervised playtest with the 3-year-old. Note confusion, fear or bored
 | 0 | Dave | 2026-11-22 | Blue window opens, Esc quits. 6/6 tests pass. |
 | 1 | Dave | 2026-11-23 | Keyboard input and debug overlay checked by hand. 17/17 tests pass. |
 | 2 | Dave | 2026-11-23 | Rocket speed, steering and distance checked by hand. Speed range kept at 6-12. 32/32 tests pass. |
+| 3 | Dave | 2026-11-23 | Round white/soft yellow stars, no streaks; steering really turns the ship. Checked by hand. 52/52 tests pass. |
