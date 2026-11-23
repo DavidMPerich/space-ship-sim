@@ -11,6 +11,7 @@ import main
 from game import moon
 from game.input import InputState
 from game.rocket import Rocket
+from game.scenes import Flight
 
 NEUTRAL = InputState()
 
@@ -32,7 +33,29 @@ def test_moon_only_grows_and_is_full_size_at_arrival():
     assert sizes == sorted(sizes)
     assert sizes[0] == config.MOON_MIN_SIZE
     assert sizes[-1] == config.MOON_MAX_SIZE
-    assert max(b - a for a, b in zip(sizes, sizes[1:])) <= 2  # steady, no jumps
+
+
+def test_moon_growth_has_no_jumps_at_top_speed():
+    frames = int(config.TRIP_DISTANCE / config.MAX_SPEED * 60)
+    sizes = [moon.moon_size(i / frames) for i in range(frames + 1)]
+    assert max(b - a for a, b in zip(sizes, sizes[1:])) <= 4
+
+
+def test_moon_size_is_inversely_proportional_to_distance():
+    """1 / size falls in a straight line with progress, as it does for a real object."""
+    inverse = [1 / moon.moon_size(p) for p in (0.0, 0.5, 1.0)]
+    assert inverse[1] == pytest.approx((inverse[0] + inverse[2]) / 2, rel=0.05)
+
+
+def test_stars_come_to_rest_after_arrival():
+    flight = Flight()
+    flight.rocket.distance = 0.01
+    for _ in range(5 * 60):
+        flight.update(NEUTRAL, 1 / 60)
+    assert flight.rocket.arrived
+    before = [s.z for s in flight.stars.stars]
+    flight.update(NEUTRAL, 1 / 60)
+    assert [s.z for s in flight.stars.stars] == pytest.approx(before, abs=1e-4)
 
 
 def test_moon_size_is_clamped():

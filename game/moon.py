@@ -17,9 +17,12 @@ def _clamp01(value):
 
 def moon_size(progress):
     """Moon diameter in pixels (always even, so it stays centered as it grows)."""
-    grown = _clamp01(progress) ** config.MOON_GROWTH
-    size = config.MOON_MIN_SIZE + (config.MOON_MAX_SIZE - config.MOON_MIN_SIZE) * grown
-    return 2 * int(size / 2)
+    # True perspective: size is inversely proportional to distance. "closest" is how far away the moon
+    # still is at arrival, chosen so the size runs exactly from MOON_MIN_SIZE to MOON_MAX_SIZE.
+    closest = config.TRIP_DISTANCE * config.MOON_MIN_SIZE / (config.MOON_MAX_SIZE - config.MOON_MIN_SIZE)
+    distance = config.TRIP_DISTANCE * (1.0 - _clamp01(progress))
+    size = config.MOON_MAX_SIZE * closest / (distance + closest)
+    return 2 * round(size / 2)
 
 
 def moon_center(heading):

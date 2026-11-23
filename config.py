@@ -38,9 +38,10 @@ STAR_MIN_RADIUS = 0.08    # closest a new star starts to the flight path
 STAR_MAX_RADIUS = 1.2
 STAR_MIN_HEIGHT = 0.018   # gap above/below; big enough that stars leave the screen before recycling
 STAR_TURN_EDGE = 1.05     # x/z just off screen, where stars wrap to the other side while turning
+STAR_TURN_SPREAD = 0.6    # how far past the edge wrapped stars are scattered (smaller = fuller sky in turns)
 STAR_FOCAL = 640          # pixels; higher = more zoomed in
-STAR_SLOW_RATE = 0.15     # depth per second at MIN_SPEED
-STAR_FAST_RATE = 0.5      # depth per second at MAX_SPEED
+STAR_RATE = 0.035         # star depth per unit of distance flown, so stars and moon share one speed
+STAR_STOP_RATE = 1.5      # how eagerly the stars come to rest after arrival
 STAR_FADE_DEPTH = 0.4     # stars reach full brightness after travelling this far
 STAR_MAX_SIZE = 10        # pixels, for the nearest stars
 STAR_COLORS = [(255, 255, 255), (255, 253, 245), (255, 250, 230), (255, 246, 214)]  # white to soft yellow
@@ -56,9 +57,8 @@ APPROACH_SOFTNESS = 0.3   # radians over which steering hands over to the automa
 
 # Moon
 MOON_IMAGE = "assets/images/moon.png"  # drawn instead if this file is missing
-MOON_MIN_SIZE = 16        # pixels across at launch (even number)
+MOON_MIN_SIZE = 28        # pixels across at launch (even); smaller = more of the growth comes near the end
 MOON_MAX_SIZE = 560       # pixels across at arrival (even number)
-MOON_GROWTH = 1.5         # 1 = grows evenly, higher = grows more near the end
 MOON_CACHE_SIZE = 8       # how many scaled moons to keep
 MOON_COLOR = (238, 234, 214)
 MOON_CRATER_COLOR = (208, 203, 182)

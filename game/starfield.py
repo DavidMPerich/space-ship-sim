@@ -16,10 +16,9 @@ class Star:
         self.color = color
 
 
-def speed_fraction(speed):
-    """0 at MIN_SPEED, 1 at MAX_SPEED."""
-    fraction = (speed - config.MIN_SPEED) / (config.MAX_SPEED - config.MIN_SPEED)
-    return max(0.0, min(1.0, fraction))
+def star_rate(speed):
+    """Star depth per second: directly proportional to rocket speed."""
+    return max(0.0, min(config.MAX_SPEED, speed)) * config.STAR_RATE
 
 
 def _mix(low, high, fraction):
@@ -74,11 +73,11 @@ class Starfield:
         edge = config.STAR_TURN_EDGE
         side = 1 if angle > 0 else -1  # turning right brings new stars in from the right
         if star.x * side < -edge * star.z:
-            star.x = side * star.z * (edge + self.rng.uniform(0, config.STAR_MAX_RADIUS))
+            star.x = side * star.z * (edge + self.rng.uniform(0, config.STAR_TURN_SPREAD))
 
     def update(self, speed, dt, turn_rate=0.0):
         dt = max(0.0, min(config.MAX_FRAME_TIME, dt))
-        step = _mix(config.STAR_SLOW_RATE, config.STAR_FAST_RATE, speed_fraction(speed)) * dt
+        step = star_rate(speed) * dt
         angle = turn_rate * dt
         for star in self.stars:
             star.z -= step

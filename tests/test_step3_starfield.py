@@ -100,6 +100,12 @@ def test_faster_means_quicker_stars():
     assert fast.stars[0].z < slow.stars[0].z < 0.8
 
 
+def test_star_speed_is_proportional_to_rocket_speed():
+    assert starfield.star_rate(config.MAX_SPEED) / starfield.star_rate(config.MIN_SPEED) == pytest.approx(
+        config.MAX_SPEED / config.MIN_SPEED)
+    assert starfield.star_rate(0) == 0
+
+
 def test_new_stars_start_invisible():
     assert starfield.star_color(Star(0, 0, config.STAR_FAR, (255, 255, 255))) == config.BACKGROUND_COLOR
 

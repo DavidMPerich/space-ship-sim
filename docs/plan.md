@@ -44,7 +44,7 @@ Automated tests:
 Manual: the overlay shows speed and distance responding smoothly to the keys.
 
 ### Step 3: Starfield (`game/starfield.py`)
-Build: 3D-projected stars that stream outward, with star speed tied to rocket speed.
+Build: 3D-projected stars that stream outward, with star speed directly proportional to rocket speed.
 Steering turns the ship: stars sweep sideways.
 Stars are round dots in white to soft yellow (no streaks; see the warp speed idea below).
 Star count comes from `config.py`.
@@ -62,7 +62,8 @@ Automated tests: a headless run of 600 frames with scripted input reaches the ex
 Manual: a full keyboard flight is playable end to end (arrival can be just a console message for now).
 
 ### Step 5: Moon and progress indicator (`game/moon.py`)
-Build: a moon that grows from a dot as distance shrinks, using pre-rendered or cached sizes.
+Build: a moon that grows from a dot as distance shrinks (true perspective, size ~ 1/distance), using
+pre-rendered or cached sizes. The stars come to rest after arrival, so they match the moon.
 The moon's screen position follows the ship's heading (it slides off-centre as the ship turns).
 When the stick is released, the ship gently turns itself back toward the moon, the shortest way round
 (decided 2026-11-23; replaced "heading kept on release" from Steps 2 and 3).

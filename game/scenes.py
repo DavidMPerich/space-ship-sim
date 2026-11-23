@@ -1,5 +1,7 @@
 """Game scenes. Step 4 has only the flight; the countdown, arrival and restart come in Step 6."""
 
+import math
+
 import config
 from game.moon import Moon, ProgressIndicator
 from game.rocket import Rocket
@@ -15,10 +17,13 @@ class Flight:
         self.moon = Moon()
         self.indicator = ProgressIndicator()
         self.announced = False
+        self.star_flow = 1.0  # eases to 0 after arrival, so the stars stop with the moon
 
     def update(self, controls, dt):
         self.rocket.update(controls, dt)
-        self.stars.update(self.rocket.speed, dt, self.rocket.turn_rate)
+        if self.rocket.arrived:
+            self.star_flow *= math.exp(-config.STAR_STOP_RATE * max(0.0, dt))
+        self.stars.update(self.rocket.speed * self.star_flow, dt, self.rocket.turn_rate)
         if self.rocket.arrived and not self.announced:
             self.announced = True
             print("You made it to the Moon!", flush=True)  # placeholder until the Step 6 celebration
