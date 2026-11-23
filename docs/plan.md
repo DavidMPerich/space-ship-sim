@@ -67,7 +67,7 @@ The moon's screen position follows the ship's heading (it slides off-centre as t
 When the stick is released, the ship gently turns itself back toward the moon, the shortest way round
 (decided 2026-11-23; replaced "heading kept on release" from Steps 2 and 3).
 In the last part of the trip, turning away is gently limited so the moon is always in view at arrival.
-If the moon image is missing, draw a circle instead. Add a rocket icon that moves along a track toward a moon icon.
+If the moon image is missing, draw a circle instead. Add a rocket icon that moves along a track from a little Earth to a finish line flag.
 Automated tests:
 - Moon size is monotonic non-decreasing in progress, and full size at arrival.
 - However the stick is held or mashed, the moon is on screen at arrival.

@@ -90,8 +90,65 @@ def draw_rocket_picture(size):
     return pygame.transform.smoothscale(picture, (size, size))
 
 
+def _rounded(points):
+    """Round off a polygon's corners by cutting each one a few times."""
+    for _ in range(3):
+        smoother = []
+        for (ax, ay), (bx, by) in zip(points, points[1:] + points[:1]):
+            smoother.append((ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25))
+            smoother.append((ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75))
+        points = smoother
+    return points
+
+
+def draw_earth_picture(size):
+    """A little Earth showing the Americas, drawn large and shrunk for smooth edges."""
+    big = size * 8
+    picture = pygame.Surface((big, big), pygame.SRCALPHA)
+    picture.fill(config.EARTH_OCEAN_COLOR)
+    for land in config.EARTH_LAND:
+        points = [(x * big, y * big) for x, y in _rounded(land)]
+        pygame.draw.polygon(picture, config.EARTH_LAND_COLOR, points)
+    for x, y, width, height in config.EARTH_ICE:
+        pygame.draw.ellipse(picture, (245, 250, 255), (x * big, y * big, width * big, height * big))
+
+    clouds = pygame.Surface((big, big), pygame.SRCALPHA)
+    for x, y, width, height in config.EARTH_CLOUDS:
+        pygame.draw.ellipse(clouds, (255, 255, 255, 150), (x * big, y * big, width * big, height * big))
+    picture.blit(clouds, (0, 0))
+
+    # Sunlight from the upper left: shade from dark at the far edge to full brightness. Also trims to a circle.
+    light = pygame.Surface((big, big), pygame.SRCALPHA)
+    steps = 40
+    for i in range(steps):
+        near = i / (steps - 1)
+        shade = int(255 * (config.EARTH_SHADOW + (1 - config.EARTH_SHADOW) * min(1.0, near * 1.6)))
+        middle = big * (0.5 - 0.12 * near)
+        pygame.draw.circle(light, (shade, shade, shade, 255), (middle, middle), big * 0.5 * (1 - 0.9 * near))
+    picture.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    return pygame.transform.smoothscale(picture, (size, size))
+
+
+def draw_flag_picture(size):
+    """A checkered finish flag on a pole, drawn large and shrunk for smooth edges."""
+    big = size * 4
+    picture = pygame.Surface((big, big), pygame.SRCALPHA)
+    pole = int(0.08 * big)
+    columns, rows = 4, 3
+    square = int(0.2 * big)
+    left, top = int(0.14 * big), int(0.07 * big)
+    for row in range(rows):
+        for column in range(columns):
+            color = (255, 255, 255) if (row + column) % 2 == 0 else (30, 30, 30)
+            pygame.draw.rect(picture, color, (left + column * square, top + row * square, square, square))
+    # A light border keeps the dark squares visible against space.
+    pygame.draw.rect(picture, (255, 255, 255), (left, top, columns * square, rows * square), int(0.03 * big))
+    pygame.draw.rect(picture, (255, 205, 80), (left - pole, 0, pole, big), border_radius=pole // 2)
+    return pygame.transform.smoothscale(picture, (size, size))
+
+
 def indicator_x(progress):
-    """Screen x of the rocket icon: the left end of the track at launch, the right end at the moon."""
+    """Screen x of the rocket icon: the left end of the track at launch, the right end at arrival."""
     left = config.INDICATOR_MARGIN
     right = config.SCREEN_WIDTH - config.INDICATOR_MARGIN
     return left + (right - left) * _clamp01(progress)
@@ -100,7 +157,8 @@ def indicator_x(progress):
 class ProgressIndicator:
     def __init__(self):
         self.rocket = draw_rocket_picture(config.INDICATOR_ICON_SIZE)
-        self.moon = draw_moon_picture(config.INDICATOR_ICON_SIZE)
+        self.earth = draw_earth_picture(config.INDICATOR_ICON_SIZE)
+        self.flag = draw_flag_picture(config.INDICATOR_ICON_SIZE)
 
     def draw(self, screen, progress):
         y = config.SCREEN_HEIGHT - config.INDICATOR_BOTTOM
@@ -109,6 +167,7 @@ class ProgressIndicator:
             x = indicator_x(i / (config.INDICATOR_DOTS - 1))
             color = config.INDICATOR_DONE_COLOR if x <= here else config.INDICATOR_TODO_COLOR
             pygame.draw.circle(screen, color, (x, y), config.INDICATOR_DOT_RADIUS)
-        # The moon waits just past the end of the track so the rocket lands beside it.
-        screen.blit(self.moon, self.moon.get_rect(center=(indicator_x(1.0) + config.INDICATOR_ICON_SIZE, y)))
+        # Earth and the finish flag sit just past the ends of the track, so the rocket never covers them.
+        screen.blit(self.earth, self.earth.get_rect(center=(indicator_x(0.0) - config.INDICATOR_ICON_SIZE, y)))
+        screen.blit(self.flag, self.flag.get_rect(center=(indicator_x(1.0) + config.INDICATOR_ICON_SIZE, y)))
         screen.blit(self.rocket, self.rocket.get_rect(center=(round(here), y)))

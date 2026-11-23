@@ -76,7 +76,7 @@ python3 main.py
    and releasing the stick lets the ship gently turn itself back toward the moon. Near the end, turning away
    is gently limited so the moon is always in view at arrival.
 3. **Approach:** the moon starts as a small dot and grows steadily as distance decreases.
-   A simple, picture-based progress indicator (a rocket icon moving toward a moon icon) beats numbers.
+   A simple, picture-based progress indicator (a rocket icon moving from a little Earth to a finish line flag) beats numbers.
 4. **Arrival:** celebration (sound, confetti/stars, "You made it to the Moon!"), then auto-restart after a pause.
 
 There is **no failure state**: no crashing, no game over, no timers that punish. Steering changes

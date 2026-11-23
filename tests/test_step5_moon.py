@@ -101,6 +101,17 @@ def test_indicator_draws_and_moves():
     assert pixels(start) != pixels(later)
 
 
+def test_earth_and_flag_fit_on_screen_and_are_not_covered():
+    icon = config.INDICATOR_ICON_SIZE
+    earth, flag = moon.indicator_x(0.0) - icon, moon.indicator_x(1.0) + icon
+    assert earth - icon / 2 >= 0 and flag + icon / 2 <= config.SCREEN_WIDTH
+    assert moon.indicator_x(0.0) - earth >= icon and flag - moon.indicator_x(1.0) >= icon
+    for picture in (moon.draw_earth_picture(icon), moon.draw_flag_picture(icon)):
+        assert picture.get_size() == (icon, icon)
+        assert picture.get_bounding_rect().width > icon * 0.8
+    assert moon.draw_earth_picture(icon).get_at((0, 0)).a == 0  # round, not square
+
+
 # Turning back toward the moon
 
 @pytest.mark.parametrize("heading", [0.3, -0.3, 1.5, -1.5, 3.1, -3.1, math.pi])
