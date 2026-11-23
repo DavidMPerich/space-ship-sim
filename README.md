@@ -21,7 +21,7 @@ Keyboard (remap in `config.py`):
 | Start | Space, Enter |
 | Quit (development only) | Esc |
 
-Add `--debug` to show live input values on screen. On Windows, use `python` instead of `python3`.
+Add `--debug` to show live input and rocket values on screen. On Windows, use `python` instead of `python3`.
 
 ## Develop and test
 

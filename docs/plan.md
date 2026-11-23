@@ -128,3 +128,4 @@ Manual: a supervised playtest with the 3-year-old. Note confusion, fear or bored
 |------|---------------|------|-------|
 | 0 | Dave | 2026-11-22 | Blue window opens, Esc quits. 6/6 tests pass. |
 | 1 | Dave | 2026-11-23 | Keyboard input and debug overlay checked by hand. 17/17 tests pass. |
+| 2 | Dave | 2026-11-23 | Rocket speed, steering and distance checked by hand. Speed range kept at 6-12. 32/32 tests pass. |

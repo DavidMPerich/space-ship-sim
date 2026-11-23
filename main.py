@@ -7,13 +7,14 @@ import pygame
 
 import config
 from game.input import InputHandler
+from game.rocket import Rocket
 
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Rocket to the Moon")
     parser.add_argument("--windowed", action="store_true", help="run in a window instead of fullscreen")
     parser.add_argument("--frames", type=int, default=0, help="quit after N frames (0 = run forever; for testing)")
-    parser.add_argument("--debug", action="store_true", help="show live input values on screen")
+    parser.add_argument("--debug", action="store_true", help="show live input and rocket values")
     return parser.parse_args(argv)
 
 
@@ -25,6 +26,16 @@ def debug_lines(state, fps):
         f"faster: {'YES' if state.faster else 'no'}",
         f"slower: {'YES' if state.slower else 'no'}",
         f"start: {'PRESSED' if state.start_pressed else '-'}",
+    ]
+
+
+def rocket_lines(rocket):
+    """Rocket values for the --debug overlay."""
+    return [
+        f"speed: {rocket.speed:.1f} (target {rocket.target_speed:.1f})",
+        f"steer offset: {rocket.steer_offset:+.2f}",
+        f"distance: {rocket.distance:.1f} ({rocket.progress:.0%} there)",
+        f"arrived: {'YES' if rocket.arrived else 'no'}",
     ]
 
 
@@ -57,21 +68,23 @@ def run(argv=None):
         screen = create_screen(args.windowed)
         clock = pygame.time.Clock()
         controls = InputHandler()
+        rocket = Rocket()
         font = pygame.font.Font(None, 36) if args.debug else None
         frame = 0
         running = True
         while running:
-            clock.tick(config.FPS)
+            dt = clock.tick(config.FPS) / 1000  # seconds
             controls.begin_frame()
             for event in pygame.event.get():
                 if is_quit_event(event):
                     running = False
                 controls.handle_event(event)
             state = controls.state()
+            rocket.update(state, dt)
 
             screen.fill(config.BACKGROUND_COLOR)
             if font:
-                draw_debug(screen, font, debug_lines(state, clock.get_fps()))
+                draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(rocket))
             pygame.display.flip()
 
             frame += 1
