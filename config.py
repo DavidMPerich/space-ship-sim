@@ -28,3 +28,19 @@ SPEED_EASE_RATE = 3.0     # how eagerly speed follows its target (higher = snapp
 MAX_SPEED_CHANGE = 4.0    # hard limit on speed change (units/s per second)
 STEER_EASE_RATE = 4.0     # how eagerly the view follows the stick (higher = snappier)
 MAX_FRAME_TIME = 0.1      # seconds; longer frames (hiccups) are treated as this long
+
+# Starfield (depth runs from STAR_FAR, where stars fade in, to STAR_NEAR, where they pass the camera)
+STAR_COUNT = 400
+STAR_FAR = 1.0
+STAR_NEAR = 0.03
+STAR_MIN_RADIUS = 0.08    # distance from the flight path; big enough that stars leave the screen before recycling
+STAR_MAX_RADIUS = 1.2
+STAR_FOCAL = 640          # pixels; higher = more zoomed in
+STAR_SLOW_RATE = 0.15     # depth per second at MIN_SPEED
+STAR_FAST_RATE = 0.5      # depth per second at MAX_SPEED
+STREAK_SLOW = 0.02        # streak length at MIN_SPEED, as a share of the star's depth
+STREAK_FAST = 0.3         # streak length at MAX_SPEED, as a share of the star's depth
+STAR_FADE_DEPTH = 0.4     # stars reach full brightness after travelling this far
+STAR_MAX_SIZE = 10        # pixels, for the nearest stars
+STAR_COLORS = [(255, 255, 255), (255, 240, 170), (170, 215, 255), (255, 190, 220)]
+STEER_SHIFT = 250         # pixels the view slides at full steering
