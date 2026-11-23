@@ -44,7 +44,7 @@ Space-Ship-Sim/
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # (planned) Moon sprite that scales up as distance shrinks
 │   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
-│   └── scenes.py        # (planned) Launch countdown → flight → moon arrival → restart
+│   └── scenes.py        # Flight (planned: launch countdown, moon arrival, restart)
 ├── tests/               # pytest, one file per plan step; runs headless
 └── assets/              # (planned)
     ├── images/

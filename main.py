@@ -8,8 +8,7 @@ import pygame
 
 import config
 from game.input import InputHandler
-from game.rocket import Rocket
-from game.starfield import Starfield
+from game.scenes import Flight
 
 
 def parse_args(argv=None):
@@ -71,8 +70,7 @@ def run(argv=None):
         screen = create_screen(args.windowed)
         clock = pygame.time.Clock()
         controls = InputHandler()
-        rocket = Rocket()
-        stars = Starfield()
+        flight = Flight()
         font = pygame.font.Font(None, 36) if args.debug else None
         frame = 0
         running = True
@@ -84,13 +82,11 @@ def run(argv=None):
                     running = False
                 controls.handle_event(event)
             state = controls.state()
-            rocket.update(state, dt)
-            stars.update(rocket.speed, dt, rocket.turn_rate)
+            flight.update(state, dt)
 
-            screen.fill(config.BACKGROUND_COLOR)
-            stars.draw(screen)
+            flight.draw(screen)
             if font:
-                draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(rocket))
+                draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(flight.rocket))
             pygame.display.flip()
 
             frame += 1
