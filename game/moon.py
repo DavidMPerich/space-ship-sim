@@ -1,6 +1,7 @@
 """The moon that grows as the rocket gets closer, and the picture-only progress indicator."""
 
 import math
+import random
 from collections import OrderedDict
 from pathlib import Path
 
@@ -30,13 +31,108 @@ def moon_center(heading):
     return (config.SCREEN_WIDTH / 2 - heading * config.STAR_FOCAL, config.SCREEN_HEIGHT / 2)
 
 
+def _sphere_light(big, edge):
+    """A round light mask: full brightness toward the upper left, fading to `edge` at the rim."""
+    light = pygame.Surface((big, big), pygame.SRCALPHA)
+    steps = 120
+    for i in range(steps):
+        near = i / (steps - 1)
+        shade = int(255 * (edge + (1 - edge) * min(1.0, near * 1.6)))
+        middle = big * (0.5 - 0.12 * near)
+        pygame.draw.circle(light, (shade, shade, shade, 255), (middle, middle), big * 0.5 * (1 - 0.9 * near))
+    return light
+
+
+def _add_texture(picture, rng):
+    """Mottle the surface with soft random light and dark patches, from coarse to fine."""
+    big = picture.get_width()
+    for cells, strength in ((12, 26), (40, 22), (130, 22)):
+        noise = pygame.Surface((cells, cells), depth=24)
+        for x in range(cells):
+            for y in range(cells):
+                shade = 255 - rng.randint(0, strength)
+                noise.set_at((x, y), (shade, shade, shade))
+        picture.blit(pygame.transform.smoothscale(noise, (big, big)), (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+
+
+def _add_maria(picture, rng):
+    """The faint gray lava plains seen from Earth, with ragged, soft edges."""
+    big = picture.get_width()
+    layer = pygame.Surface((big, big), pygame.SRCALPHA)
+    layer.fill((*config.MOON_MARIA_COLOR, 0))
+    for x, y, half_width, half_height in config.MOON_MARIA:
+        for _ in range(40):  # many overlapping blobs make an uneven coastline
+            angle, out = rng.uniform(0, math.tau), math.sqrt(rng.random()) * 0.85
+            blob = rng.uniform(0.2, 0.45) * min(half_width, half_height) * big
+            center = ((x + math.cos(angle) * half_width * out) * big, (y + math.sin(angle) * half_height * out) * big)
+            strength = config.MOON_MARIA_STRENGTH * rng.uniform(0.6, 1.0)
+            pygame.draw.circle(layer, (*config.MOON_MARIA_COLOR, int(255 * strength)), center, blob)
+    # Shrinking and growing again blurs the edges cheaply.
+    small = pygame.transform.smoothscale(layer, (56, 56))
+    picture.blit(pygame.transform.smoothscale(small, (big, big)), (0, 0))
+
+
+def _add_rays(picture, rng):
+    """Bright streaks around a young crater near the bottom (like Tycho)."""
+    big = picture.get_width()
+    layer = pygame.Surface((big, big), pygame.SRCALPHA)
+    layer.fill((255, 255, 250, 0))
+    x, y = config.MOON_RAY_CENTER
+    for _ in range(config.MOON_RAY_COUNT):
+        angle = rng.uniform(0, math.tau)
+        length = rng.uniform(0.12, 0.42)
+        tip = ((x + math.cos(angle) * length) * big, (y + math.sin(angle) * length) * big)
+        side = (-math.sin(angle) * 0.008 * big, math.cos(angle) * 0.008 * big)
+        base = (x * big, y * big)
+        pygame.draw.polygon(layer, (255, 255, 250, 80), [
+            (base[0] + side[0], base[1] + side[1]), tip, (base[0] - side[0], base[1] - side[1])])
+    pygame.draw.circle(layer, (255, 255, 250, 110), (x * big, y * big), 0.03 * big)
+    small = pygame.transform.smoothscale(layer, (big // 8, big // 8))
+    picture.blit(pygame.transform.smoothscale(small, (big, big)), (0, 0))
+
+
+def _crater_outline(x, y, radius, shift):
+    """A circle on the moon's surface, squashed toward the rim the way a ball's surface is. -1..1 units."""
+    out = math.hypot(x, y)
+    squash = math.sqrt(max(0.05, 1 - out * out))
+    ux, uy = (x / out, y / out) if out else (1.0, 0.0)
+    points = []
+    for i in range(24):
+        along = math.cos(i * math.tau / 24) * radius * squash
+        across = math.sin(i * math.tau / 24) * radius
+        points.append((x + shift + ux * along - uy * across, y + shift + uy * along + ux * across))
+    return points
+
+
+def _add_craters(picture, rng):
+    """Many small craters and a few large ones, lit from the upper left."""
+    big = picture.get_width()
+    layer = pygame.Surface((big, big), pygame.SRCALPHA)
+    craters = []
+    for _ in range(config.MOON_CRATER_COUNT):
+        angle, out = rng.uniform(0, math.tau), 0.97 * math.sqrt(rng.random())
+        radius = min(config.MOON_CRATER_MAX, config.MOON_CRATER_MIN / math.sqrt(1 - rng.random()))
+        craters.append((math.cos(angle) * out, math.sin(angle) * out, radius))
+    craters.sort(key=lambda crater: -crater[2])  # small ones land on top of large ones
+    for x, y, radius in craters:
+        for color, scale, shift in (((255, 254, 248, 85), 1.0, 0.14), ((95, 93, 90, 80), 1.0, -0.06),
+                                    ((165, 163, 157, 60), 0.82, 0.06)):
+            points = _crater_outline(x, y, radius * scale, shift * radius)
+            pygame.draw.polygon(layer, color, [((px + 1) * big / 2, (py + 1) * big / 2) for px, py in points])
+    picture.blit(layer, (0, 0))
+
+
 def draw_moon_picture(size):
-    """A friendly cratered moon, drawn large and shrunk for smooth edges."""
+    """The moon's near side, drawn large and shrunk for smooth edges. The same every time."""
     big = size * 2
+    rng = random.Random(config.MOON_SEED)
     picture = pygame.Surface((big, big), pygame.SRCALPHA)
-    pygame.draw.circle(picture, config.MOON_COLOR, (big / 2, big / 2), big / 2)
-    for x, y, radius in config.MOON_CRATERS:
-        pygame.draw.circle(picture, config.MOON_CRATER_COLOR, (x * big, y * big), radius * big)
+    picture.fill(config.MOON_COLOR)
+    _add_maria(picture, rng)
+    _add_texture(picture, rng)
+    _add_rays(picture, rng)
+    _add_craters(picture, rng)
+    picture.blit(_sphere_light(big, config.MOON_SHADOW), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
     return pygame.transform.smoothscale(picture, (size, size))
 
 
@@ -120,15 +216,7 @@ def draw_earth_picture(size):
         pygame.draw.ellipse(clouds, (255, 255, 255, 150), (x * big, y * big, width * big, height * big))
     picture.blit(clouds, (0, 0))
 
-    # Sunlight from the upper left: shade from dark at the far edge to full brightness. Also trims to a circle.
-    light = pygame.Surface((big, big), pygame.SRCALPHA)
-    steps = 40
-    for i in range(steps):
-        near = i / (steps - 1)
-        shade = int(255 * (config.EARTH_SHADOW + (1 - config.EARTH_SHADOW) * min(1.0, near * 1.6)))
-        middle = big * (0.5 - 0.12 * near)
-        pygame.draw.circle(light, (shade, shade, shade, 255), (middle, middle), big * 0.5 * (1 - 0.9 * near))
-    picture.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    picture.blit(_sphere_light(big, config.EARTH_SHADOW), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
     return pygame.transform.smoothscale(picture, (size, size))
 
 

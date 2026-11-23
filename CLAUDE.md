@@ -23,8 +23,8 @@ Avoid adding heavy dependencies. Anything new must install cleanly on Raspberry 
 ## Project status
 
 `docs/plan.md` has the step-by-step build plan and the sign-off log. Work one step at a time, and only
-start the next step after the user signs off the current one. Steps 0–4 (skeleton, keyboard input,
-rocket state, starfield, flight scene) are signed off.
+start the next step after the user signs off the current one. Steps 0–5 (skeleton, keyboard input,
+rocket state, starfield, flight scene, moon and progress indicator) are signed off.
 
 ## Project structure
 

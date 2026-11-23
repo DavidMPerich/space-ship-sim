@@ -73,6 +73,15 @@ def test_missing_or_broken_image_falls_back_to_a_drawn_moon(tmp_path):
         assert picture.get_at((0, 0)).a == 0  # round, not square
 
 
+def test_drawn_moon_is_the_same_every_time_and_stays_bright():
+    first, second = moon.draw_moon_picture(120), moon.draw_moon_picture(120)
+    assert pixels(first) == pixels(second)
+    shades = [first.get_at((x, y)) for x in range(30, 90, 4) for y in range(30, 90, 4)]
+    brightness = [(c.r + c.g + c.b) / 3 for c in shades]
+    assert sum(brightness) / len(brightness) > 130  # friendly, not gloomy
+    assert max(brightness) - min(brightness) > 40   # visible surface detail
+
+
 def test_image_file_is_used_when_present(tmp_path):
     image = pygame.Surface((20, 20), pygame.SRCALPHA)
     image.fill((1, 200, 3))

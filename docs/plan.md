@@ -146,3 +146,4 @@ Manual: a supervised playtest with the 3-year-old. Note confusion, fear or bored
 | 2 | Dave | 2026-11-23 | Rocket speed, steering and distance checked by hand. Speed range kept at 6-12. 32/32 tests pass. |
 | 3 | Dave | 2026-11-23 | Round white/soft yellow stars, no streaks; steering really turns the ship. Checked by hand. 52/52 tests pass. |
 | 4 | Dave | 2026-11-23 | Full keyboard flight to arrival played by hand. 58/58 tests pass. |
+| 5 | Dave | 2026-11-23 | Realistic moon, Earth-to-flag progress track, auto-return to the moon, star speed matched to moon growth. Checked by hand. 87/87 tests pass. |

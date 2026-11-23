@@ -60,11 +60,20 @@ MOON_IMAGE = "assets/images/moon.png"  # drawn instead if this file is missing
 MOON_MIN_SIZE = 28        # pixels across at launch (even); smaller = more of the growth comes near the end
 MOON_MAX_SIZE = 560       # pixels across at arrival (even number)
 MOON_CACHE_SIZE = 8       # how many scaled moons to keep
-MOON_COLOR = (238, 234, 214)
-MOON_CRATER_COLOR = (208, 203, 182)
-MOON_CRATERS = [          # x, y, radius as shares of the moon's width
-    (0.34, 0.30, 0.10), (0.66, 0.40, 0.07), (0.45, 0.66, 0.12),
-    (0.74, 0.68, 0.06), (0.20, 0.55, 0.05), (0.56, 0.17, 0.045),
+MOON_COLOR = (252, 250, 242)
+MOON_SHADOW = 0.72        # brightness at the shaded edge (1 = no shading)
+MOON_SEED = 7             # different numbers give different craters
+MOON_CRATER_COUNT = 420
+MOON_CRATER_MIN = 0.008   # crater radius as a share of the moon's radius
+MOON_CRATER_MAX = 0.055
+MOON_RAY_CENTER = (0.46, 0.83)  # bright young crater, as shares of the moon's width
+MOON_RAY_COUNT = 22
+MOON_MARIA_COLOR = (150, 149, 150)
+MOON_MARIA_STRENGTH = 0.5  # how visible the dark plains are (0 = none, 1 = solid)
+MOON_MARIA = [            # dark plains: x, y, half width, half height as shares of the moon's width
+    (0.36, 0.28, 0.14, 0.12), (0.58, 0.31, 0.08, 0.08), (0.67, 0.42, 0.11, 0.09), (0.84, 0.35, 0.04, 0.055),
+    (0.79, 0.53, 0.06, 0.09), (0.69, 0.58, 0.05, 0.05), (0.18, 0.42, 0.10, 0.18), (0.25, 0.65, 0.06, 0.06),
+    (0.40, 0.64, 0.10, 0.07), (0.32, 0.52, 0.09, 0.08), (0.47, 0.13, 0.17, 0.025),
 ]
 
 # Progress indicator
