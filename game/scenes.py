@@ -1,6 +1,7 @@
 """Game scenes. Step 4 has only the flight; the countdown, arrival and restart come in Step 6."""
 
 import config
+from game.moon import Moon, ProgressIndicator
 from game.rocket import Rocket
 from game.starfield import Starfield
 
@@ -11,6 +12,8 @@ class Flight:
     def __init__(self):
         self.rocket = Rocket()
         self.stars = Starfield()
+        self.moon = Moon()
+        self.indicator = ProgressIndicator()
         self.announced = False
 
     def update(self, controls, dt):
@@ -23,3 +26,5 @@ class Flight:
     def draw(self, screen):
         screen.fill(config.BACKGROUND_COLOR)
         self.stars.draw(screen)
+        self.moon.draw(screen, self.rocket.progress, self.rocket.heading)
+        self.indicator.draw(screen, self.rocket.progress)

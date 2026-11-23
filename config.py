@@ -44,3 +44,34 @@ STAR_FAST_RATE = 0.5      # depth per second at MAX_SPEED
 STAR_FADE_DEPTH = 0.4     # stars reach full brightness after travelling this far
 STAR_MAX_SIZE = 10        # pixels, for the nearest stars
 STAR_COLORS = [(255, 255, 255), (255, 253, 245), (255, 250, 230), (255, 246, 214)]  # white to soft yellow
+
+# Turning back toward the moon
+RETURN_RATE = 0.8         # how eagerly the ship turns back when the stick is released (above 1 overshoots)
+RETURN_MAX_STEER = 0.8    # strongest automatic turn, as a share of full steering
+# Near the end, turning away gets gently limited so the moon is always in view at arrival
+APPROACH_START = 0.6      # progress where the limit starts closing in
+APPROACH_END = 0.95       # progress where it is tightest
+APPROACH_HEADING = 0.2    # tightest limit, radians
+APPROACH_SOFTNESS = 0.3   # radians over which steering hands over to the automatic turn
+
+# Moon
+MOON_IMAGE = "assets/images/moon.png"  # drawn instead if this file is missing
+MOON_MIN_SIZE = 16        # pixels across at launch (even number)
+MOON_MAX_SIZE = 560       # pixels across at arrival (even number)
+MOON_GROWTH = 1.5         # 1 = grows evenly, higher = grows more near the end
+MOON_CACHE_SIZE = 8       # how many scaled moons to keep
+MOON_COLOR = (238, 234, 214)
+MOON_CRATER_COLOR = (208, 203, 182)
+MOON_CRATERS = [          # x, y, radius as shares of the moon's width
+    (0.34, 0.30, 0.10), (0.66, 0.40, 0.07), (0.45, 0.66, 0.12),
+    (0.74, 0.68, 0.06), (0.20, 0.55, 0.05), (0.56, 0.17, 0.045),
+]
+
+# Progress indicator
+INDICATOR_MARGIN = 160        # pixels from the screen sides to the ends of the track
+INDICATOR_BOTTOM = 60         # pixels from the bottom of the screen
+INDICATOR_ICON_SIZE = 72
+INDICATOR_DOTS = 21
+INDICATOR_DOT_RADIUS = 5
+INDICATOR_DONE_COLOR = (255, 220, 120)
+INDICATOR_TODO_COLOR = (90, 90, 140)

@@ -23,8 +23,8 @@ Avoid adding heavy dependencies. Anything new must install cleanly on Raspberry 
 ## Project status
 
 `docs/plan.md` has the step-by-step build plan and the sign-off log. Work one step at a time, and only
-start the next step after the user signs off the current one. Steps 0–3 (skeleton, keyboard input,
-rocket state, starfield) are signed off.
+start the next step after the user signs off the current one. Steps 0–4 (skeleton, keyboard input,
+rocket state, starfield, flight scene) are signed off.
 
 ## Project structure
 
@@ -42,7 +42,7 @@ Space-Ship-Sim/
 │   ├── starfield.py     # 3D-projected starfield (the "flying" effect)
 │   ├── rocket.py        # Player state: speed, turning, heading, distance to moon
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
-│   ├── moon.py          # (planned) Moon sprite that scales up as distance shrinks
+│   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
 │   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
 │   └── scenes.py        # Flight (planned: launch countdown, moon arrival, restart)
 ├── tests/               # pytest, one file per plan step; runs headless
@@ -73,7 +73,8 @@ python3 main.py
    Stars are round dots in white to soft yellow, with no streaks (streaks are saved for a possible
    "warp speed" effect later). Speed stays where it is set when a button is released.
    Steering really turns the ship: stars sweep sideways, the ship always flies toward the screen center,
-   and the heading holds on release (Step 5 may change this; see Open questions).
+   and releasing the stick lets the ship gently turn itself back toward the moon. Near the end, turning away
+   is gently limited so the moon is always in view at arrival.
 3. **Approach:** the moon starts as a small dot and grows steadily as distance decreases.
    A simple, picture-based progress indicator (a rocket icon moving toward a moon icon) beats numbers.
 4. **Arrival:** celebration (sound, confetti/stars, "You made it to the Moon!"), then auto-restart after a pause.
@@ -126,8 +127,6 @@ the ship's heading, but it never changes distance or arrival, so the player can 
 
 ## Open questions / TBD
 
-- How the ship gets back to facing the moon after turning away (decide before Step 5; suggested: it gently
-  turns itself back when the stick is released)
 - Raspberry Pi model and display resolution
 - Exact input hardware (USB arcade encoder vs. GPIO-wired buttons)
 - Whether to add a cockpit frame/overlay

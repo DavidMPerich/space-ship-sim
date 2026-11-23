@@ -49,9 +49,26 @@ class Rocket:
         self._update_distance((old_speed + self.speed) / 2, dt)
 
     def _update_steering(self, controls, dt):
-        target = _clamp(controls.steer, -1.0, 1.0)
+        target = self._steering_target(_clamp(controls.steer, -1.0, 1.0))
         self.steer_offset += (target - self.steer_offset) * _ease_fraction(config.STEER_EASE_RATE, dt)
         self.heading = math.remainder(self.heading + self.turn_rate * dt, math.tau)  # never grows forever
+
+    def _steering_target(self, steer):
+        """The player's steering, or a gentle turn back toward the moon when the stick is released."""
+        strength = config.RETURN_RATE * self.heading / config.TURN_RATE
+        back = -_clamp(strength, -config.RETURN_MAX_STEER, config.RETURN_MAX_STEER)
+        if steer == 0.0:
+            return back
+        if steer * self.heading <= 0.0:
+            return steer  # already turning toward the moon
+        too_far = abs(self.heading) - self._heading_limit()
+        share = _clamp(too_far / config.APPROACH_SOFTNESS, 0.0, 1.0)
+        return steer + (back - steer) * share
+
+    def _heading_limit(self):
+        """How far the ship may face from the moon: any direction at first, closing in near the end."""
+        closing = (self.progress - config.APPROACH_START) / (config.APPROACH_END - config.APPROACH_START)
+        return math.pi + (config.APPROACH_HEADING - math.pi) * _clamp(closing, 0.0, 1.0)
 
     def _update_speed(self, controls, dt):
         throttle = int(controls.faster) - int(controls.slower)  # both held cancels out

@@ -51,8 +51,7 @@ def test_600_frames_with_scripted_input(monkeypatch):
     rocket = run_scripted(monkeypatch, 600, {
         60: [(pygame.KEYDOWN, pygame.K_UP)],
         180: [(pygame.KEYUP, pygame.K_UP)],
-        240: [(pygame.KEYDOWN, pygame.K_RIGHT)],
-        360: [(pygame.KEYUP, pygame.K_RIGHT)],
+        480: [(pygame.KEYDOWN, pygame.K_RIGHT)],
     })
     # 1 s at cruising speed, then a couple of seconds climbing to top speed.
     assert config.START_SPEED * 10 * 1.15 < travelled(rocket) < config.MAX_SPEED * 10

@@ -117,20 +117,16 @@ def test_steering_is_smooth_and_recentres():
     assert 0 < rocket.steer_offset < 0.2
     fly(rocket, InputState(steer=1.0), 3)
     assert rocket.steer_offset == pytest.approx(1.0, abs=0.01)
-    fly(rocket, NEUTRAL, 3)
+    fly(rocket, NEUTRAL, 15)
     assert rocket.steer_offset == pytest.approx(0.0, abs=0.01)
 
 
-def test_turning_changes_heading_and_release_keeps_it():
+def test_turning_changes_heading():
     rocket = Rocket()
     fly(rocket, InputState(steer=1.0), 2)
     assert rocket.heading > 0.5
-    fly(rocket, NEUTRAL, 3)  # let the turn settle
-    settled = rocket.heading
-    fly(rocket, NEUTRAL, 3)
-    assert rocket.heading == pytest.approx(settled, abs=0.001)
-    fly(rocket, InputState(steer=-1.0), 6)
-    assert rocket.heading < settled
+    fly(rocket, InputState(steer=-1.0), 4)
+    assert rocket.heading < 0.0
 
 
 def test_heading_stays_bounded_when_circling():
