@@ -44,8 +44,9 @@ Space-Ship-Sim/
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
 │   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
-│   ├── effects.py       # Outlined text, start button and confetti
-│   └── scenes.py        # Ready, countdown, flight, arrival celebration and restart
+│   ├── effects.py       # Outlined text and confetti
+│   ├── launch.py        # Hangar roof, sky, clouds and thruster glow
+│   └── scenes.py        # Ready, roof opening, countdown, flight, arrival celebration and restart
 ├── tests/               # pytest, one file per plan step; runs headless
 └── assets/              # (planned)
     ├── images/
@@ -69,7 +70,9 @@ python3 main.py
 
 ## Core gameplay
 
-1. **Launch:** big "3… 2… 1… BLAST OFF!" countdown (start with a button press or automatically).
+1. **Launch:** first person, looking up at a hangar roof. A button press (or a wait) opens its two doors outward to
+   the sky, then a big "5… 4… 3… 2… 1… BLAST OFF!" countdown. A thruster glow warms the screen border. The ship
+   climbs through clouds while the sky darkens and the stars brighten.
 2. **Flight:** starfield streams outward from the center. Higher speed makes the stars move faster.
    Stars are round dots in white to soft yellow, with no streaks (streaks are saved for a possible
    "warp speed" effect later). Speed stays where it is set when a button is released.

@@ -103,9 +103,9 @@ INDICATOR_DONE_COLOR = (255, 220, 120)
 INDICATOR_TODO_COLOR = (90, 90, 140)
 
 # Scenes (times in seconds)
-AUTO_START_DELAY = 8.0        # the countdown starts by itself after waiting this long for a button
+AUTO_START_DELAY = 8.0        # the roof opens by itself after waiting this long for a button
 COUNTDOWN_STEP = 1.0          # how long each number shows
-COUNTDOWN_WORDS = ["3", "2", "1"]
+COUNTDOWN_WORDS = ["5", "4", "3", "2", "1"]
 BLAST_OFF_TEXT = "BLAST OFF!"
 BLAST_OFF_TIME = 2.0          # shown while the flight begins
 BLAST_OFF_FADE = 0.6          # the last part of that, fading away
@@ -114,7 +114,7 @@ ARRIVAL_PAUSE = 12.0          # celebration length before starting over
 SCENE_FADE = 1.0              # gentle fade between trips
 LAUNCH_RATE = 1.0             # how eagerly the stars get moving at launch
 
-# Text and launch screen pictures
+# Text
 TEXT_COLOR = (255, 225, 110)
 TEXT_OUTLINE_COLOR = (35, 30, 90)
 TEXT_OUTLINE = 6              # pixels
@@ -128,14 +128,8 @@ POP_PRESS = 0.6               # share of that for a button press
 POP_RATE = 5.0                # how quickly they settle
 BOB_HEIGHT = 10               # pixels of gentle up and down
 BOB_SPEED = 2.5               # radians per second
-LEAN_DISTANCE = 80            # pixels the launch pictures follow the stick
+LEAN_DISTANCE = 80            # pixels the countdown numbers follow the stick
 LEAN_RATE = 5.0               # how eagerly they follow it
-READY_ROCKET_SIZE = 300
-READY_ROCKET_Y = 250
-READY_BUTTON_RADIUS = 60
-READY_BUTTON_Y = 510
-READY_BUTTON_COLOR = (80, 210, 110)
-READY_BUTTON_SHADE = (40, 130, 70)
 
 # Confetti
 CONFETTI_COUNT = 120          # steady falling pieces
@@ -147,3 +141,52 @@ CONFETTI_SWAY = 40            # pixels per second side to side
 CONFETTI_BURST_SPEED = 520
 CONFETTI_GRAVITY = 500
 CONFETTI_COLORS = [(255, 110, 120), (255, 200, 80), (110, 215, 130), (100, 180, 255), (200, 140, 255)]
+
+# Launch: hangar roof (pixels are for the roof as first seen)
+DOOR_TIME = 4.0               # seconds for the roof to open
+HANGAR_HALF_WIDTH = 500
+HANGAR_HALF_HEIGHT = 250
+HANGAR_RISE = 8.0             # how quickly the opening passes by after liftoff
+HANGAR_SLATS = 6              # panels per door
+HANGAR_LAMPS = 8              # along the top
+HANGAR_WALL_COLOR = (62, 72, 104)
+HANGAR_RIM_COLOR = (150, 162, 190)
+HANGAR_LINE_COLOR = (48, 56, 84)
+HANGAR_DOOR_COLORS = [(128, 142, 172), (114, 128, 158)]
+HANGAR_EDGE_COLOR = (245, 195, 70)
+HANGAR_LAMP_OFF = (150, 130, 90)
+HANGAR_LAMP_ON = (255, 235, 150)
+
+# Launch: sky (altitude runs from 0 at the hangar to 1 in space)
+ASCENT_DISTANCE = 150.0       # distance flown before the sky is fully dark
+ASCENT_MAX_SHARE = 0.4        # but never more than this share of the trip
+SKY_STOPS = [(0.0, (135, 203, 250)), (0.45, (95, 165, 235)), (0.7, (38, 75, 155))]  # then BACKGROUND_COLOR
+STARS_APPEAR = 0.42           # altitude where stars start to show
+CLOUD_COUNT = 26
+CLOUD_KINDS = 4               # different cloud pictures
+CLOUD_SEED = 5
+CLOUD_PUFFS = 9
+CLOUD_PICTURE_SIZE = (480, 280)
+CLOUD_LOW = 0.20              # altitudes of the lowest and highest clouds
+CLOUD_HIGH = 0.50
+CLOUD_SPREAD = 0.75           # how far from dead ahead clouds reach (smaller = more to fly through)
+CLOUD_MIN_WIDTH = 0.07
+CLOUD_MAX_WIDTH = 0.14
+CLOUD_FADE_SIZE = 450         # pixels wide where a close cloud starts melting into mist
+CLOUD_GONE_SIZE = 800
+CLOUD_CACHE_SIZE = 30
+CLOUD_COLOR = (248, 251, 255)
+CLOUD_SHADE = (208, 224, 242)
+MIST_START = 0.26             # altitudes where the mist begins, is thickest, and has cleared
+MIST_MIDDLE = 0.40
+MIST_END = 0.54
+MIST_MAX = 0.85
+
+# Launch: thruster glow
+THRUST_LEAD = 2.0             # starts this long before liftoff
+THRUST_PEAK = 1.5             # strongest this long after liftoff
+THRUST_FADE = 8.0             # then fades away over this long
+THRUST_INNER = 0.62           # the glow is an oval: where it begins, as a share of the way to the screen edge
+THRUST_OUTER = 1.2            # where it is strongest (1 = middle of an edge, 1.41 = corners)
+THRUST_MAX = 0.85
+THRUST_COLORS = [(240, 45, 20), (255, 115, 20), (255, 205, 60)]  # inside to edge

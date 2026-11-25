@@ -1,4 +1,4 @@
-"""Celebration and launch visuals: outlined text, the start button and confetti."""
+"""Celebration and countdown visuals: outlined text and confetti."""
 
 import math
 import random
@@ -6,7 +6,6 @@ import random
 import pygame
 
 import config
-from game.moon import draw_rocket_picture
 
 
 def draw_text_picture(text, size):
@@ -26,18 +25,6 @@ def draw_text_picture(text, size):
         picture.blit(back, (edge + math.cos(angle) * edge, edge + math.sin(angle) * edge))
     picture.blit(front, (edge, edge))
     return picture
-
-
-def draw_ready_rocket():
-    """The launch screen rocket, pointing up."""
-    return pygame.transform.rotate(draw_rocket_picture(config.READY_ROCKET_SIZE), 90)
-
-
-def draw_button(screen, center, down):
-    """A big round push button. down runs from 0 (up) to 1 (pushed in)."""
-    radius, (x, y) = config.READY_BUTTON_RADIUS, center
-    pygame.draw.circle(screen, config.READY_BUTTON_SHADE, (x, y + radius * 0.25), radius)
-    pygame.draw.circle(screen, config.READY_BUTTON_COLOR, (x, y + radius * 0.2 * down), radius)
 
 
 class ConfettiPiece:

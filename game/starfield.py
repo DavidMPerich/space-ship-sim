@@ -36,10 +36,11 @@ def project(x, y, z, center):
     return (center[0] + x * scale, center[1] + y * scale)
 
 
-def star_color(star):
-    """Fade in from the background so new stars never pop."""
+def star_color(star, background=config.BACKGROUND_COLOR, brightness=1.0):
+    """Fade in from the background so new stars never pop. brightness 0 hides stars in daylight."""
     glow = max(0.0, min(1.0, (config.STAR_FAR - star.z) / config.STAR_FADE_DEPTH))
-    return tuple(int(_mix(back, full, glow)) for back, full in zip(config.BACKGROUND_COLOR, star.color))
+    glow *= brightness
+    return tuple(int(_mix(back, full, glow)) for back, full in zip(background, star.color))
 
 
 def star_size(z):
@@ -87,7 +88,9 @@ class Starfield:
             if angle:
                 self._turn(star, angle)
 
-    def draw(self, screen):
+    def draw(self, screen, background=config.BACKGROUND_COLOR, brightness=1.0):
+        if brightness <= 0.0:
+            return
         center = vanishing_point()
         area = screen.get_rect().inflate(config.STAR_MAX_SIZE * 2, config.STAR_MAX_SIZE * 2)
         for star in self.stars:
@@ -95,7 +98,7 @@ class Starfield:
             if not area.collidepoint(position):
                 continue
             size = star_size(star.z)
-            color = star_color(star)
+            color = star_color(star, background, brightness)
             if size > 2:
                 pygame.draw.circle(screen, color, position, size / 2)
             else:

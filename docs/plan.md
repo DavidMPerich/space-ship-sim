@@ -79,7 +79,10 @@ Automated tests:
 Manual: the moon's growth looks steady, and the indicator is readable without any text.
 
 ### Step 6: Scenes (`game/scenes.py`)
-Build: a countdown ("3, 2, 1, BLAST OFF!", started by a button press or automatically) → flight →
+Build: a hangar roof seen from below (a button press or a wait opens its two doors outward, showing sky and clouds) →
+a five second countdown ("5, 4, 3, 2, 1, BLAST OFF!"), with a thruster glow around the border from 2 seconds
+left that peaks just after liftoff and slowly fades → a climb through the clouds as the sky darkens and the stars
+brighten → flight →
 arrival celebration ("You made it to the Moon!", stars or confetti) → automatic restart after a pause.
 Timings live in `config.py`.
 Automated tests:

@@ -163,12 +163,14 @@ class Moon:
                 self.cache.popitem(last=False)
         return self.cache[size]
 
-    def draw(self, screen, progress, heading):
+    def draw(self, screen, progress, heading, brightness=1.0):
         size = moon_size(progress)
         x, y = moon_center(heading)
-        if x + size < 0 or x - size > config.SCREEN_WIDTH:
-            return  # turned away
-        screen.blit(self.scaled(size), (round(x - size / 2), round(y - size / 2)))
+        if brightness <= 0.0 or x + size < 0 or x - size > config.SCREEN_WIDTH:
+            return  # daylight, or turned away
+        picture = self.scaled(size)
+        picture.set_alpha(round(255 * brightness))
+        screen.blit(picture, (round(x - size / 2), round(y - size / 2)))
 
 
 def draw_rocket_picture(size):
