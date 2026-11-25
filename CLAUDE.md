@@ -34,7 +34,7 @@ Space-Ship-Sim/
 ├── README.md
 ├── requirements.txt
 ├── requirements-dev.txt # Adds pytest; not needed on the Pi
-├── main.py              # Entry point: init, game loop (scene switching planned)
+├── main.py              # Entry point: init, game loop
 ├── config.py            # Tunable constants (speeds, distances, colors, FPS, input mapping)
 ├── docs/
 │   └── plan.md          # Build plan and sign-off log
@@ -44,7 +44,8 @@ Space-Ship-Sim/
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
 │   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
-│   └── scenes.py        # Flight (planned: launch countdown, moon arrival, restart)
+│   ├── effects.py       # Outlined text, start button and confetti
+│   └── scenes.py        # Ready, countdown, flight, arrival celebration and restart
 ├── tests/               # pytest, one file per plan step; runs headless
 └── assets/              # (planned)
     ├── images/

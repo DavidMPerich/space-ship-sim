@@ -101,3 +101,49 @@ EARTH_CLOUDS = [                                                        # x, y, 
 ]
 INDICATOR_DONE_COLOR = (255, 220, 120)
 INDICATOR_TODO_COLOR = (90, 90, 140)
+
+# Scenes (times in seconds)
+AUTO_START_DELAY = 8.0        # the countdown starts by itself after waiting this long for a button
+COUNTDOWN_STEP = 1.0          # how long each number shows
+COUNTDOWN_WORDS = ["3", "2", "1"]
+BLAST_OFF_TEXT = "BLAST OFF!"
+BLAST_OFF_TIME = 2.0          # shown while the flight begins
+BLAST_OFF_FADE = 0.6          # the last part of that, fading away
+ARRIVAL_TEXT = "You made it to the Moon!"
+ARRIVAL_PAUSE = 12.0          # celebration length before starting over
+SCENE_FADE = 1.0              # gentle fade between trips
+LAUNCH_RATE = 1.0             # how eagerly the stars get moving at launch
+
+# Text and launch screen pictures
+TEXT_COLOR = (255, 225, 110)
+TEXT_OUTLINE_COLOR = (35, 30, 90)
+TEXT_OUTLINE = 6              # pixels
+TEXT_MAX_WIDTH = 0.85         # share of the screen width; longer text is made smaller to fit
+COUNTDOWN_SIZE = 420          # font sizes
+BLAST_OFF_SIZE = 240
+ARRIVAL_SIZE = 130
+ARRIVAL_TEXT_Y = 95
+POP_SIZE = 0.15               # how much bigger numbers are when they appear
+POP_PRESS = 0.6               # share of that for a button press
+POP_RATE = 5.0                # how quickly they settle
+BOB_HEIGHT = 10               # pixels of gentle up and down
+BOB_SPEED = 2.5               # radians per second
+LEAN_DISTANCE = 80            # pixels the launch pictures follow the stick
+LEAN_RATE = 5.0               # how eagerly they follow it
+READY_ROCKET_SIZE = 300
+READY_ROCKET_Y = 250
+READY_BUTTON_RADIUS = 60
+READY_BUTTON_Y = 510
+READY_BUTTON_COLOR = (80, 210, 110)
+READY_BUTTON_SHADE = (40, 130, 70)
+
+# Confetti
+CONFETTI_COUNT = 120          # steady falling pieces
+CONFETTI_BURST = 30           # extra pieces for each button press
+CONFETTI_MAX = 260            # never more than this, however much the buttons are mashed
+CONFETTI_SIZE = 14
+CONFETTI_FALL = (90, 190)     # slowest and fastest falling, pixels per second
+CONFETTI_SWAY = 40            # pixels per second side to side
+CONFETTI_BURST_SPEED = 520
+CONFETTI_GRAVITY = 500
+CONFETTI_COLORS = [(255, 110, 120), (255, 200, 80), (110, 215, 130), (100, 180, 255), (200, 140, 255)]

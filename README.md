@@ -18,7 +18,7 @@ Keyboard (remap in `config.py`):
 | Steer | Left/Right arrows, A/D |
 | Faster | Up arrow, Space, W |
 | Slower | Down arrow, S |
-| Start | Space, Enter |
+| Start | Space, Enter (or any faster/slower button) |
 | Quit (development only) | Esc |
 
 Add `--debug` to show live input and rocket values on screen. On Windows, use `python` instead of `python3`.

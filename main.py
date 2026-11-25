@@ -8,7 +8,7 @@ import pygame
 
 import config
 from game.input import InputHandler
-from game.scenes import Flight
+from game.scenes import Game
 
 
 def parse_args(argv=None):
@@ -70,7 +70,7 @@ def run(argv=None):
         screen = create_screen(args.windowed)
         clock = pygame.time.Clock()
         controls = InputHandler()
-        flight = Flight()
+        game = Game()
         font = pygame.font.Font(None, 36) if args.debug else None
         frame = 0
         running = True
@@ -82,11 +82,12 @@ def run(argv=None):
                     running = False
                 controls.handle_event(event)
             state = controls.state()
-            flight.update(state, dt)
+            game.update(state, dt)
 
-            flight.draw(screen)
+            game.draw(screen)
             if font:
-                draw_debug(screen, font, debug_lines(state, clock.get_fps()) + rocket_lines(flight.rocket))
+                lines = debug_lines(state, clock.get_fps()) + rocket_lines(game.flight.rocket)
+                draw_debug(screen, font, lines + [f"scene: {game.scene}"])
             pygame.display.flip()
 
             frame += 1
