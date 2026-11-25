@@ -65,16 +65,26 @@ def looped_noise(seconds, rng, low, high):
     return noise[:count]
 
 
+def steadied(samples, window=0.12):
+    """Even out the loudness all the way around a loop, so it never swells like waves or wind."""
+    size, half = len(samples), int(window * RATE / 2)
+    power = sum(samples[i % size] ** 2 for i in range(-half, half))
+    result = []
+    for i in range(size):
+        result.append(samples[i] / math.sqrt(max(power, 1e-9) / (2 * half)))
+        power += samples[(i + half) % size] ** 2 - samples[(i - half) % size] ** 2
+    return result
+
+
 def rumble(seconds, seed, low, high, tones, tone_level):
-    """A steady engine loop. Tones and wobble complete whole turns, so they repeat without a seam."""
-    noise = looped_noise(seconds, random.Random(seed), low, high)
+    """A steady engine loop. Tones complete whole turns, so they repeat without a seam."""
+    noise = steadied(looped_noise(seconds, random.Random(seed), low, high))
     result = []
     for i, sample in enumerate(noise):
         t = i / RATE
-        wobble = 1.0 + 0.12 * tone(1 / seconds * 3, t) + 0.08 * tone(1 / seconds * 7, t)
         hum = sum(level * tone(freq, t) for freq, level in tones)
-        result.append(sample * wobble + hum * tone_level)
-    return result
+        result.append(sample + hum * tone_level)
+    return steadied(result)
 
 
 def note(freq, seconds, decay, overtones=((1, 1.0),), attack=0.008):
@@ -88,23 +98,12 @@ def note(freq, seconds, decay, overtones=((1, 1.0),), attack=0.008):
     return result
 
 
-def mixed(seconds, parts):
-    """Add up (start time, level, samples) parts."""
-    result = [0.0] * int(seconds * RATE)
-    for start, level, samples in parts:
-        first = int(start * RATE)
-        for i, sample in enumerate(samples):
-            if first + i < len(result):
-                result[first + i] += sample * level
-    return result
-
-
 def engine_low():
-    return leveled(rumble(4, 1, 40, 220, ((55, 1.0), (82.5, 0.6), (110, 0.5), (165, 0.25)), 0.25), 0.22)
+    return leveled(rumble(12, 1, 40, 220, ((55, 1.0), (82.5, 0.6), (110, 0.5), (165, 0.25)), 0.25), 0.22)
 
 
 def engine_high():
-    return leveled(rumble(4, 2, 70, 480, ((82.5, 0.8), (123.75, 0.6), (165, 0.6), (247.5, 0.3)), 0.25), 0.22)
+    return leveled(rumble(12, 2, 70, 480, ((82.5, 0.8), (123.75, 0.6), (165, 0.6), (247.5, 0.3)), 0.25), 0.22)
 
 
 def thrusters():
@@ -158,17 +157,7 @@ def count():
     return scaled(note(440, 0.45, 7, ((1, 1.0), (2, 0.3), (3, 0.08)), 0.012), 0.6)
 
 
-def jingle():
-    """A short happy tune on a music box, ending on a chord."""
-    bell = ((1, 1.0), (2, 0.35), (4, 0.1))
-    c5, e5, g5, a5, c6, e6 = 523.25, 659.25, 783.99, 880.0, 1046.5, 1318.5
-    tune = [(0.0, c5), (0.22, e5), (0.44, g5), (0.76, a5), (0.98, g5), (1.3, e5), (1.52, g5)]
-    parts = [(start, 0.8, note(freq, 1.2, 3.5, bell)) for start, freq in tune]
-    parts += [(1.9 + 0.05 * i, 0.6, note(freq, 2.4, 1.8, bell)) for i, freq in enumerate((c5, e5, g5, c6, e6))]
-    return scaled(mixed(4.6, parts), 0.6)
-
-
-SOUNDS = [engine_low, engine_high, thrusters, roof, roof_stop, touchdown, button, count, jingle]
+SOUNDS = [engine_low, engine_high, thrusters, roof, roof_stop, touchdown, button, count]
 
 
 def save(name, samples):

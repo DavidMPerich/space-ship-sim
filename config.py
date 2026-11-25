@@ -139,7 +139,7 @@ SOUND_RATE = 44100
 SOUND_BUFFER = 1024           # smaller = quicker beeps, but may crackle on a slow Pi
 SOUND_CHANNELS = 14           # how many sounds can play at once
 SOUND_EASE_RATE = 8.0         # how quickly steady sounds change volume
-SOUND_VOLUMES = {"button": 0.22, "count": 0.45, "roof_stop": 0.4, "touchdown": 0.55, "jingle": 0.45}
+SOUND_VOLUMES = {"button": 0.22, "count": 0.45, "roof_stop": 0.4, "touchdown": 0.55}
 ROOF_VOLUME = 0.35
 THRUSTER_VOLUME = 0.6         # at the strongest moment of liftoff
 LANDING_THRUST_VOLUME = 0.35
@@ -147,7 +147,6 @@ LANDING_THRUST_RISE = 2.5     # seconds
 LANDING_THRUST_FALL = 1.5     # seconds
 ENGINE_SLOW_VOLUME = 0.12
 ENGINE_FAST_VOLUME = 0.28
-JINGLE_DELAY = 1.0            # seconds after touchdown
 
 # Landing
 LANDING_TIME = 7.0            # seconds from the end of the flight to touchdown

@@ -1,4 +1,4 @@
-"""Step 7: engine, thrusters, roof, beeps, landing and jingle."""
+"""Step 7: engine, thrusters, roof, beeps and landing."""
 
 import array
 import math
@@ -238,7 +238,7 @@ def test_landing_thrust_swells_then_stops_at_touchdown():
     assert max(abs(b - a) for a, b in zip(values, values[1:])) < 0.05
 
 
-def test_landing_thump_then_jingle_once_each(game):
+def test_landing_thumps_once_and_then_it_is_quiet(game):
     game.begin_flight()
     game.flight.rocket.distance = 0.01
     game.update(NEUTRAL, DT)
@@ -250,7 +250,7 @@ def test_landing_thump_then_jingle_once_each(game):
     assert game.scene == ARRIVAL
     assert game.audio.played == ["touchdown"]
     run_for(game, config.ARRIVAL_PAUSE - 1)
-    assert game.audio.played == ["touchdown", "jingle"]
+    assert game.audio.played == ["touchdown"]
     assert all(target < 0.01 for target in game.audio.targets.values())
 
 
@@ -284,6 +284,26 @@ def test_loops_repeat_without_a_click(name):
 def test_one_time_sounds_start_and_end_silent(name):
     samples, _ = read_sound(name)
     assert abs(samples[0]) < 0.02 and max(abs(s) for s in samples[-20:]) < 0.02
+
+
+@pytest.mark.parametrize("name", ["engine_low", "engine_high"])
+def test_engine_is_constant_not_wavy(name):
+    samples, rate = read_sound(name)
+    size = rate // 4
+    levels = [math.sqrt(sum(s * s for s in samples[i:i + size]) / size)
+              for i in range(0, len(samples) - size + 1, size)]
+    assert max(levels) / min(levels) < 1.1
+    assert len(samples) / rate >= 10  # long enough not to sound like it repeats
+
+
+def test_engine_volume_is_constant_at_a_steady_speed(game):
+    game.begin_flight()
+    run_for(game, 12)
+    levels = []
+    for _ in range(600):
+        game.update(NEUTRAL, DT)
+        levels.append(game.audio.levels["engine_low"] + game.audio.levels["engine_high"])
+    assert max(levels) - min(levels) < 0.001
 
 
 def test_loops_are_evenly_loud():

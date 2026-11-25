@@ -191,8 +191,6 @@ class Game:
 
     def _update_arrival(self, pressed, dt):
         self.flight.update(InputState(), dt)
-        if self.time - dt < config.JINGLE_DELAY <= self.time:
-            self.audio.play("jingle")
         if pressed:
             self.pop = 1.0
         if self.time >= config.ARRIVAL_PAUSE:

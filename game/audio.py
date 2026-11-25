@@ -9,7 +9,7 @@ import config
 
 ROOT = Path(__file__).resolve().parent.parent
 LOOPS = ["engine_low", "engine_high", "thrusters", "roof"]
-ONE_TIME = ["roof_stop", "count", "touchdown", "jingle"]  # each has its own channel, so it always plays
+ONE_TIME = ["roof_stop", "count", "touchdown"]  # each has its own channel, so it always plays
 BUTTON = "button"                                         # shares what is left, so mashing can overlap
 
 

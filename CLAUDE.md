@@ -23,8 +23,8 @@ Avoid adding heavy dependencies. Anything new must install cleanly on Raspberry 
 ## Project status
 
 `docs/plan.md` has the step-by-step build plan and the sign-off log. Work one step at a time, and only
-start the next step after the user signs off the current one. Steps 0–6 (skeleton, keyboard input,
-rocket state, starfield, flight scene, moon and progress indicator, scenes) are signed off.
+start the next step after the user signs off the current one. Steps 0–7 (skeleton, keyboard input,
+rocket state, starfield, flight scene, moon and progress indicator, scenes, audio) are signed off.
 
 ## Project structure
 
@@ -43,7 +43,7 @@ Space-Ship-Sim/
 │   ├── rocket.py        # Player state: speed, turning, heading, distance to moon
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
-│   ├── audio.py         # Engine, thrusters, roof, beeps, landing and jingle; silent if files are missing
+│   ├── audio.py         # Engine, thrusters, roof, beeps and landing; silent if files are missing
 │   ├── effects.py       # Shared drawing helpers: outlined text, texture, zooming
 │   ├── landing.py       # Landing on the moon: surface, horizon, dust
 │   ├── launch.py        # Hangar roof, sky, clouds and thruster glow
