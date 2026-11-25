@@ -71,7 +71,7 @@ def test_slower_input_covers_less_distance(monkeypatch):
 
 
 def test_full_trip_arrives_and_celebrates(monkeypatch):
-    frames = int((config.TRIP_DISTANCE / config.START_SPEED + 5) * 60)
+    frames = int((config.TRIP_DISTANCE / config.START_SPEED + config.LANDING_TIME + 5) * 60)
     game = run_scripted(monkeypatch, frames, {})
     assert game.flight.rocket.arrived
     assert game.scene == ARRIVAL

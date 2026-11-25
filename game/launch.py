@@ -1,5 +1,6 @@
 """The launch: a hangar roof that opens, the sky and clouds above it, and the thruster glow."""
 
+import functools
 import math
 import random
 from collections import OrderedDict
@@ -7,12 +8,7 @@ from collections import OrderedDict
 import pygame
 
 import config
-
-
-def _share(value, start, end):
-    """How far value is from start to end, 0 to 1, easing gently at both ends."""
-    share = max(0.0, min(1.0, (value - start) / (end - start)))
-    return share * share * (3 - 2 * share)
+from game.effects import draw_noise, draw_zoomed, smooth_share
 
 
 def _blend(low, high, share):
@@ -30,40 +26,40 @@ def sky_color(altitude):
 
 def star_brightness(altitude):
     """Stars (and the moon) are hidden by daylight until the ship is above the clouds."""
-    return _share(altitude, config.STARS_APPEAR, 1.0)
+    return smooth_share(altitude, config.STARS_APPEAR, 1.0)
 
 
 def mist_strength(altitude):
     """How thick the cloud around the ship is: rises and clears again while passing through."""
     start, middle, end = config.MIST_START, config.MIST_MIDDLE, config.MIST_END
     if altitude < middle:
-        return config.MIST_MAX * _share(altitude, start, middle)
-    return config.MIST_MAX * (1.0 - _share(altitude, middle, end))
+        return config.MIST_MAX * smooth_share(altitude, start, middle)
+    return config.MIST_MAX * (1.0 - smooth_share(altitude, middle, end))
 
 
 def thrust_glow(seconds):
     """Thruster glow, 0 to 1. seconds counts from liftoff and is negative during the countdown."""
     if seconds < config.THRUST_PEAK:
-        return _share(seconds, -config.THRUST_LEAD, config.THRUST_PEAK)
-    return 1.0 - _share(seconds, config.THRUST_PEAK, config.THRUST_PEAK + config.THRUST_FADE)
+        return smooth_share(seconds, -config.THRUST_LEAD, config.THRUST_PEAK)
+    return 1.0 - smooth_share(seconds, config.THRUST_PEAK, config.THRUST_PEAK + config.THRUST_FADE)
 
 
-def draw_cloud_picture(rng):
-    """A puffy cloud, drawn large, then shrunk and grown again so its edges are soft."""
-    width, height = config.CLOUD_PICTURE_SIZE
-    big = pygame.Surface((width * 2, height * 2), pygame.SRCALPHA)
-    big.fill((*config.CLOUD_COLOR, 0))
-    for shade, shift in ((config.CLOUD_SHADE, 0.05), (config.CLOUD_COLOR, 0.0)):
-        puffs = random.Random(rng)  # the same puffs twice: shaded underneath, bright on top
-        for i in range(config.CLOUD_PUFFS):
-            along = (i + 0.5) / config.CLOUD_PUFFS
-            x = 0.16 + 0.68 * along
-            radius = puffs.uniform(0.12, 0.2) * (0.6 + 0.6 * math.sin(along * math.pi))
-            y = 0.52 + puffs.uniform(-0.12, 0.1) + shift
-            center = (x * width * 2, y * height * 2)
-            pygame.draw.circle(big, (*shade, 255), center, radius * height * 2.6)
-    soft = pygame.transform.smoothscale(big, (width // 4, height // 4))
-    return pygame.transform.smoothscale(soft, (width, height))
+@functools.lru_cache(maxsize=None)
+def draw_cloud_picture(seed, cover, picture_size):
+    """A cloud seen from underneath: a gray, shadowed middle with thin, sunlit edges. Same every time."""
+    rng = random.Random(seed)
+    size = config.CLOUD_DETAIL
+    shape, texture = draw_noise(size, rng), draw_noise(size, rng)
+    picture = pygame.Surface((size, size), pygame.SRCALPHA)
+    for x in range(size):
+        for y in range(size):
+            out = math.hypot(2 * (x + 0.5) / size - 1, 2 * (y + 0.5) / size - 1)
+            thick = shape.get_at((x, y)).r / 255 + 0.45 * (1 - out * out) - 0.25 - cover
+            solid = smooth_share(thick, 0.0, config.CLOUD_EDGE) * smooth_share(1.0 - out, 0.0, 0.3)
+            bumps = texture.get_at((x, y)).r / 255 - 0.5
+            shadow = max(0.0, min(1.0, smooth_share(thick, 0.02, 0.6 + config.CLOUD_COVER - cover) + bumps * 1.1 * solid))
+            picture.set_at((x, y), (*_blend(config.CLOUD_COLOR, config.CLOUD_SHADE, shadow), round(255 * solid)))
+    return pygame.transform.smoothscale(picture, picture_size)
 
 
 class Cloud:
@@ -78,11 +74,14 @@ class Cloud:
 class Clouds:
     def __init__(self):
         rng = random.Random(config.CLOUD_SEED)
-        self.pictures = [draw_cloud_picture(config.CLOUD_SEED + i) for i in range(config.CLOUD_KINDS)]
+        self.pictures = [draw_cloud_picture(config.CLOUD_SEED + i, config.CLOUD_COVER, config.CLOUD_PICTURE_SIZE)
+                         for i in range(config.CLOUD_KINDS)]
+        self.ahead = draw_cloud_picture(config.CLOUD_SEED, config.CLOUD_AHEAD_COVER, config.CLOUD_AHEAD_SIZE)
         self.cache = OrderedDict()  # (picture, width) -> scaled picture, oldest first
         self.clouds = []
         for i in range(config.CLOUD_COUNT):
-            height = rng.uniform(config.CLOUD_LOW, config.CLOUD_HIGH)
+            # More of them up high, so there are always clouds ahead.
+            height = config.CLOUD_LOW + (config.CLOUD_HIGH - config.CLOUD_LOW) * rng.random() ** 0.6
             self.clouds.append(Cloud(
                 rng.uniform(-1, 1) * config.CLOUD_SPREAD * height, rng.uniform(-0.6, 0.6) * config.CLOUD_SPREAD * height,
                 height,
@@ -102,7 +101,11 @@ class Clouds:
 
     def draw(self, screen, altitude, heading):
         area = screen.get_rect()
+        ahead_drawn = False
         for cloud in self.clouds:
+            if not ahead_drawn and cloud.height < config.CLOUD_AHEAD_HEIGHT:
+                self._draw_ahead(screen, altitude, heading)
+                ahead_drawn = True
             gap = cloud.height - altitude
             if gap <= 0.0:
                 continue  # already passed
@@ -116,8 +119,30 @@ class Clouds:
             if not area.colliderect(spot):
                 continue
             picture = self._scaled(cloud.picture, width)
-            picture.set_alpha(round(255 * (1.0 - _share(width, config.CLOUD_FADE_SIZE, config.CLOUD_GONE_SIZE))))
+            picture.set_alpha(round(255 * (1.0 - smooth_share(width, config.CLOUD_FADE_SIZE, config.CLOUD_GONE_SIZE))))
             screen.blit(picture, spot)
+
+    def ahead_rect(self, altitude, heading):
+        """Where the cloud dead ahead is on screen. None once the ship is through it."""
+        gap = config.CLOUD_AHEAD_HEIGHT - altitude
+        if gap <= 0.0 or altitude >= config.CLOUD_AHEAD_FADE[1]:
+            return None
+        width = round(config.CLOUD_AHEAD_WIDTH * config.STAR_FOCAL / gap)
+        rect = pygame.Rect(0, 0, width, width * config.CLOUD_AHEAD_SIZE[1] // config.CLOUD_AHEAD_SIZE[0])
+        # It follows the steering a little, but never far enough to fly past it.
+        limit = config.CLOUD_AHEAD_SHIFT
+        shift = limit * math.tanh(heading * config.STAR_FOCAL / limit)
+        rect.center = (round(config.SCREEN_WIDTH / 2 - shift), config.SCREEN_HEIGHT // 2)
+        return rect
+
+    def _draw_ahead(self, screen, altitude, heading):
+        rect = self.ahead_rect(altitude, heading)
+        if rect is None:
+            return
+        # Smooth while small; up close the picture is soft enough for the faster way.
+        smooth = rect.width < 0.6 * config.CLOUD_AHEAD_SIZE[0]
+        alpha = round(255 * (1.0 - smooth_share(altitude, *config.CLOUD_AHEAD_FADE)))
+        draw_zoomed(screen, self.ahead, rect, smooth, alpha)
 
 
 class Sky:
@@ -145,7 +170,7 @@ class ThrusterGlow:
         for x in range(columns):
             for y in range(rows):
                 out = math.hypot(2 * (x + 0.5) / columns - 1, 2 * (y + 0.5) / rows - 1)
-                heat = _share(out, config.THRUST_INNER, config.THRUST_OUTER)
+                heat = smooth_share(out, config.THRUST_INNER, config.THRUST_OUTER)
                 small.set_at((x, y), (*self._color(heat), round(255 * config.THRUST_MAX * heat)))
         picture = pygame.transform.smoothscale(small, (config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
         self.strips = [(picture.subsurface(rect).copy(), rect) for rect in self._strip_rects()]

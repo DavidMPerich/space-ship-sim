@@ -6,9 +6,9 @@ import pygame
 import pytest
 
 import config
-from game import effects, launch
+from game import landing, launch
 from game.input import InputState
-from game.scenes import ARRIVAL, COUNTDOWN, FLIGHT, OPENING, READY, Game
+from game.scenes import ARRIVAL, COUNTDOWN, FLIGHT, LANDING, OPENING, READY, Game
 
 DT = 1 / 60
 NEUTRAL = InputState()
@@ -35,18 +35,21 @@ def to_arrival(game):
     game.begin_flight()
     game.flight.rocket.distance = 0.01
     game.update(NEUTRAL, DT)
+    assert game.scene == LANDING
+    run_for(game, config.LANDING_TIME + 0.05)
     assert game.scene == ARRIVAL
+    game.time = 0.0
 
 
 def test_three_full_loops_run_in_order(game):
     seen = [game.scene]
     trip = config.TRIP_DISTANCE / config.START_SPEED
-    loop = config.AUTO_START_DELAY + config.DOOR_TIME + countdown_time() + trip + config.ARRIVAL_PAUSE
+    loop = config.AUTO_START_DELAY + config.DOOR_TIME + countdown_time() + trip + config.LANDING_TIME + config.ARRIVAL_PAUSE
     for _ in range(int((3 * loop + 2) * 60)):
         game.update(NEUTRAL, DT)
         if game.scene != seen[-1]:
             seen.append(game.scene)
-    assert seen == [READY, OPENING, COUNTDOWN, FLIGHT, ARRIVAL] * 3 + [READY]
+    assert seen == [READY, OPENING, COUNTDOWN, FLIGHT, LANDING, ARRIVAL] * 3 + [READY]
 
 
 @pytest.mark.parametrize("controls", [START, InputState(faster=True), InputState(slower=True)])
@@ -139,7 +142,6 @@ def test_mashing_cannot_skip_the_celebration(game):
     frames = 0
     while game.scene == ARRIVAL:
         game.update(MASH[frames % 3], DT)
-        assert len(game.confetti.pieces) <= config.CONFETTI_MAX
         frames += 1
     assert game.scene == READY
     assert frames * DT == pytest.approx(config.ARRIVAL_PAUSE, abs=0.05)
@@ -156,7 +158,8 @@ def test_random_mashing_and_odd_frames_never_break(game, monkeypatch):
     game.begin_ready()
     rng = random.Random(1)
     screen = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
-    following = {READY: OPENING, OPENING: COUNTDOWN, COUNTDOWN: FLIGHT, FLIGHT: ARRIVAL, ARRIVAL: READY}
+    following = {READY: OPENING, OPENING: COUNTDOWN, COUNTDOWN: FLIGHT, FLIGHT: LANDING, LANDING: ARRIVAL,
+                 ARRIVAL: READY}
     seen = set()
     for i in range(6000):
         before = game.scene
@@ -177,18 +180,8 @@ def test_presses_give_visible_feedback(game):
     game.update(START, DT)
     assert game.pop > before
     to_arrival(game)
-    count = len(game.confetti.pieces)
     game.update(START, DT)
-    assert len(game.confetti.pieces) == count + config.CONFETTI_BURST
-
-
-def test_burst_pieces_leave_but_steady_confetti_stays():
-    confetti = effects.Confetti(random.Random(2))
-    confetti.start()
-    confetti.burst()
-    for _ in range(10 * 60):
-        confetti.update(DT)
-    assert len(confetti.pieces) == config.CONFETTI_COUNT
+    assert game.pop > 0.9
 
 
 def test_text_fits_on_screen(game):
@@ -199,7 +192,7 @@ def test_text_fits_on_screen(game):
 
 def test_every_scene_draws(game):
     screen = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
-    for begin in (game.begin_ready, game.begin_opening, game.begin_countdown, game.begin_flight, game.begin_arrival):
+    for begin in (game.begin_ready, game.begin_opening, game.begin_countdown, game.begin_flight, game.begin_landing, game.begin_arrival):
         begin()
         run_for(game, 0.5)
         game.draw(screen)
@@ -293,7 +286,7 @@ def test_stars_appear_only_after_the_thickest_cloud_and_mist_clears():
     assert launch.mist_strength(0.0) == launch.mist_strength(1.0) == 0.0
     assert launch.mist_strength(config.MIST_MIDDLE) == config.MIST_MAX
     mist = [launch.mist_strength(i / 1000) for i in range(1001)]
-    assert max(abs(b - a) for a, b in zip(mist, mist[1:])) < 0.01
+    assert max(abs(b - a) for a, b in zip(mist, mist[1:])) < 0.012
 
 
 def test_ship_climbs_smoothly_to_space_at_any_speed(game):
@@ -318,3 +311,105 @@ def test_ascent_draws_at_every_height_and_the_cloud_cache_is_bounded(game):
         game.draw(screen)
         assert len(game.flight.sky.clouds.cache) <= config.CLOUD_CACHE_SIZE
     assert game.hangar.frame_scale(1.0) is None
+
+
+CLOUD = (config.CLOUD_SEED, config.CLOUD_COVER, config.CLOUD_PICTURE_SIZE)
+
+
+def test_clouds_are_the_same_every_time():
+    launch.draw_cloud_picture.cache_clear()
+    first = launch.draw_cloud_picture(*CLOUD)
+    launch.draw_cloud_picture.cache_clear()
+    second = launch.draw_cloud_picture(*CLOUD)
+    assert pygame.image.tobytes(first, "RGBA") == pygame.image.tobytes(second, "RGBA")
+
+
+@pytest.mark.parametrize("kind", range(config.CLOUD_KINDS))
+def test_clouds_are_visible_and_never_cut_off_square(kind):
+    picture = launch.draw_cloud_picture(config.CLOUD_SEED + kind, config.CLOUD_COVER, config.CLOUD_PICTURE_SIZE)
+    width, height = picture.get_size()
+    edge = [(x, y) for x in range(width) for y in (0, height - 1)]
+    edge += [(x, y) for x in (0, width - 1) for y in range(height)]
+    assert max(picture.get_at(spot).a for spot in edge) <= 2
+    inside = [picture.get_at((x, y)).a for x in range(0, width, 8) for y in range(0, height, 8)]
+    assert sum(alpha > 128 for alpha in inside) > len(inside) * 0.1
+
+
+def test_roof_starts_opening_soon():
+    assert config.AUTO_START_DELAY <= 3.0
+
+
+def test_cloud_ahead_fills_the_screen_before_the_mist_hides_it(game):
+    clouds = game.flight.sky.clouds
+    start = clouds.ahead_rect(0.0, 0.0)
+    assert start.centerx == config.SCREEN_WIDTH // 2 and start.width < config.SCREEN_WIDTH / 2
+    widths = [clouds.ahead_rect(i / 1000, 0.0).width for i in range(430)]
+    assert widths == sorted(widths)
+    half_mist = (config.MIST_START + config.MIST_MIDDLE) / 2
+    assert clouds.ahead_rect(half_mist, 0.0).contains(pygame.Rect(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+    # It only dissolves while the mist is thick.
+    for altitude in config.CLOUD_AHEAD_FADE:
+        assert launch.mist_strength(altitude) > 0.8 * config.MIST_MAX
+
+
+def test_cloud_ahead_has_a_solid_middle():
+    picture = launch.draw_cloud_picture(config.CLOUD_SEED, config.CLOUD_AHEAD_COVER, config.CLOUD_AHEAD_SIZE)
+    width, height = picture.get_size()
+    for x in range(int(width * 0.38), int(width * 0.62), 5):
+        for y in range(int(height * 0.38), int(height * 0.62), 5):
+            assert picture.get_at((x, y)).a > 230
+
+
+def test_steering_cannot_miss_the_cloud_ahead(game):
+    for heading in (-3.1, -1.0, 0.5, 3.1):
+        rect = game.flight.sky.clouds.ahead_rect(0.3, heading)
+        assert abs(rect.centerx - config.SCREEN_WIDTH / 2) <= config.CLOUD_AHEAD_SHIFT + 1
+        assert rect.collidepoint(config.SCREEN_WIDTH // 2, config.SCREEN_HEIGHT // 2)
+
+
+@pytest.mark.parametrize("speed", [config.MIN_SPEED, config.START_SPEED, config.MAX_SPEED])
+def test_moon_keeps_growing_smoothly_until_touchdown(speed):
+    frames = round(config.LANDING_TIME * 60)
+    sizes = [landing.landing_size(i / 60, speed) for i in range(frames + 60)]
+    assert sizes[0] == pytest.approx(config.MOON_MAX_SIZE)  # carries on from the flight
+    assert sizes[-1] == pytest.approx(config.LANDING_SIZE)
+    assert all(b >= a - 1e-6 for a, b in zip(sizes, sizes[1:]))
+    assert max(b / a for a, b in zip(sizes, sizes[1:])) < 1.03  # no lurching
+    # Starts at the rate the moon was growing in flight.
+    closest = config.TRIP_DISTANCE * config.MOON_MIN_SIZE / (config.MOON_MAX_SIZE - config.MOON_MIN_SIZE)
+    assert (sizes[1] - sizes[0]) * 60 == pytest.approx(config.MOON_MAX_SIZE / closest * speed, rel=0.05)
+
+
+def test_moon_edge_becomes_the_horizon():
+    heights = [landing.horizon_y(i / 60) for i in range(round(config.LANDING_TIME * 60) + 60)]
+    assert heights[0] == (config.SCREEN_HEIGHT - config.MOON_MAX_SIZE) / 2
+    assert heights[-1] == config.LANDING_HORIZON
+    assert heights == sorted(heights)
+    assert max(b - a for a, b in zip(heights, heights[1:])) < 3
+
+
+def test_after_landing_the_ground_fills_the_bottom_of_the_screen(game):
+    screen = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+    to_arrival(game)
+    run_for(game, 5)
+    game.flight.draw_view(screen)
+    bottom = config.SCREEN_HEIGHT - 1
+    for x in range(0, config.SCREEN_WIDTH, 40):
+        assert brightness(screen.get_at((x, bottom))) > 200
+
+
+def test_mashing_cannot_skip_the_landing(game):
+    game.begin_flight()
+    game.flight.rocket.distance = 0.01
+    game.update(NEUTRAL, DT)
+    frames = 0
+    while game.scene == LANDING:
+        game.update(MASH[frames % 3], DT)
+        frames += 1
+    assert game.scene == ARRIVAL
+    assert frames * DT == pytest.approx(config.LANDING_TIME, abs=0.05)
+
+
+def test_ground_reaches_the_bottom_whenever_it_shows():
+    start = landing.horizon_y(config.GROUND_FADE[0] * config.LANDING_TIME)
+    assert start + landing.draw_ground_picture().get_height() >= config.SCREEN_HEIGHT

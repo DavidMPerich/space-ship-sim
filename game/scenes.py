@@ -1,4 +1,4 @@
-"""Game scenes: ready -> opening -> countdown -> flight -> arrival -> ready again, forever."""
+"""Game scenes: ready -> opening -> countdown -> flight -> landing -> arrival -> ready again, forever."""
 
 import math
 
@@ -7,6 +7,7 @@ import pygame
 import config
 from game import effects, launch
 from game.input import InputState
+from game.landing import Landing
 from game.moon import Moon, ProgressIndicator
 from game.rocket import Rocket
 from game.starfield import Starfield
@@ -15,6 +16,7 @@ READY = "ready"
 OPENING = "opening"
 COUNTDOWN = "countdown"
 FLIGHT = "flight"
+LANDING = "landing"
 ARRIVAL = "arrival"
 
 
@@ -31,18 +33,24 @@ class Flight:
         self.moon = Moon()
         self.indicator = ProgressIndicator()
         self.sky = launch.Sky()
+        self.landing = Landing(self.moon.picture)
         self.reset()
 
     def reset(self):
         """Back to the launch pad. Pictures are kept, so this is instant."""
         self.rocket.reset()
         self.altitude = 0.0   # 0 = in the hangar, 1 = out in space
+        self.landing_time = None   # seconds since the landing began, None before that
+        self.landing_speed = 0.0
         self.star_flow = 0.0  # eases to 1 at launch and back to 0 after arrival
 
     def update(self, controls, dt):
         self.rocket.update(controls, dt)
         dt = max(0.0, dt)
         if self.rocket.arrived:
+            if self.landing_time is None:
+                self.landing_time, self.landing_speed = 0.0, self.rocket.speed
+            self.landing_time += min(dt, config.MAX_FRAME_TIME)
             self.star_flow = _ease(self.star_flow, 0.0, config.STAR_STOP_RATE, dt)
         else:
             self.star_flow = _ease(self.star_flow, 1.0, config.LAUNCH_RATE, dt)
@@ -63,6 +71,9 @@ class Flight:
         heading = self.rocket.heading
         screen.fill(background)
         self.stars.draw(screen, background, brightness)
+        if self.landing_time is not None:
+            self.landing.draw(screen, self.landing_time, self.landing_speed, heading)
+            return
         self.moon.draw(screen, self.rocket.progress, heading, brightness)
         self.sky.draw_clouds(screen, self.altitude, heading)
 
@@ -75,7 +86,6 @@ class Game:
 
     def __init__(self):
         self.flight = Flight()
-        self.confetti = effects.Confetti()
         self.hangar = launch.Hangar()
         self.glow = launch.ThrusterGlow()
         self.numbers = [effects.draw_text_picture(word, config.COUNTDOWN_SIZE) for word in config.COUNTDOWN_WORDS]
@@ -108,8 +118,10 @@ class Game:
     def begin_flight(self):
         self._enter(FLIGHT)
 
+    def begin_landing(self):
+        self._enter(LANDING)
+
     def begin_arrival(self):
-        self.confetti.start()
         self._enter(ARRIVAL)
 
     def update(self, controls, dt):
@@ -126,6 +138,8 @@ class Game:
             self._update_countdown(pressed, dt)
         elif self.scene == FLIGHT:
             self._update_flight(controls, dt)
+        elif self.scene == LANDING:
+            self._update_landing(dt)
         else:
             self._update_arrival(pressed, dt)
         self._update_fade(dt)
@@ -158,13 +172,17 @@ class Game:
     def _update_flight(self, controls, dt):
         self.flight.update(controls, dt)
         if self.flight.rocket.arrived:
+            self.begin_landing()
+
+    def _update_landing(self, dt):
+        self.flight.update(InputState(), dt)  # hands off: the ship settles facing the moon
+        if self.time >= config.LANDING_TIME:
             self.begin_arrival()
 
     def _update_arrival(self, pressed, dt):
-        self.flight.update(InputState(), dt)  # hands off: the ship settles facing the moon
+        self.flight.update(InputState(), dt)
         if pressed:
-            self.confetti.burst()
-        self.confetti.update(dt)
+            self.pop = 1.0
         if self.time >= config.ARRIVAL_PAUSE:
             self.begin_ready()
 
@@ -195,7 +213,7 @@ class Game:
 
     def draw(self, screen):
         self.flight.draw_view(screen)
-        if self.scene != ARRIVAL:
+        if self.scene not in (LANDING, ARRIVAL):
             self.hangar.draw(screen, self.doors_open(), self.flight.altitude, self.pop)
             self.glow.draw(screen, self.thrust())
         self.flight.draw_indicator(screen)
@@ -231,6 +249,8 @@ class Game:
         screen.blit(self.blast_off, self.blast_off.get_rect(center=center))
 
     def _draw_arrival(self, screen):
-        self.confetti.draw(screen)
+        picture = self.arrival_text
+        if self.pop > 0.01:
+            picture = pygame.transform.smoothscale_by(picture, 1.0 + config.ARRIVAL_POP * self.pop)
         center = (config.SCREEN_WIDTH / 2, config.ARRIVAL_TEXT_Y + self._bob() * config.BOB_HEIGHT)
-        screen.blit(self.arrival_text, self.arrival_text.get_rect(center=center))
+        screen.blit(picture, picture.get_rect(center=center))

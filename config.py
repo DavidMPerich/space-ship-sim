@@ -103,7 +103,7 @@ INDICATOR_DONE_COLOR = (255, 220, 120)
 INDICATOR_TODO_COLOR = (90, 90, 140)
 
 # Scenes (times in seconds)
-AUTO_START_DELAY = 8.0        # the roof opens by itself after waiting this long for a button
+AUTO_START_DELAY = 2.0        # the roof opens by itself after waiting this long for a button
 COUNTDOWN_STEP = 1.0          # how long each number shows
 COUNTDOWN_WORDS = ["5", "4", "3", "2", "1"]
 BLAST_OFF_TEXT = "BLAST OFF!"
@@ -124,6 +124,7 @@ BLAST_OFF_SIZE = 240
 ARRIVAL_SIZE = 130
 ARRIVAL_TEXT_Y = 95
 POP_SIZE = 0.15               # how much bigger numbers are when they appear
+ARRIVAL_POP = 0.1             # how much the arrival text bounces for a button press
 POP_PRESS = 0.6               # share of that for a button press
 POP_RATE = 5.0                # how quickly they settle
 BOB_HEIGHT = 10               # pixels of gentle up and down
@@ -131,16 +132,23 @@ BOB_SPEED = 2.5               # radians per second
 LEAN_DISTANCE = 80            # pixels the countdown numbers follow the stick
 LEAN_RATE = 5.0               # how eagerly they follow it
 
-# Confetti
-CONFETTI_COUNT = 120          # steady falling pieces
-CONFETTI_BURST = 30           # extra pieces for each button press
-CONFETTI_MAX = 260            # never more than this, however much the buttons are mashed
-CONFETTI_SIZE = 14
-CONFETTI_FALL = (90, 190)     # slowest and fastest falling, pixels per second
-CONFETTI_SWAY = 40            # pixels per second side to side
-CONFETTI_BURST_SPEED = 520
-CONFETTI_GRAVITY = 500
-CONFETTI_COLORS = [(255, 110, 120), (255, 200, 80), (110, 215, 130), (100, 180, 255), (200, 140, 255)]
+# Landing
+LANDING_TIME = 7.0            # seconds from the end of the flight to touchdown
+LANDING_SIZE = 5200           # pixels across the moon has grown to at touchdown
+LANDING_HORIZON = 430         # screen height of the horizon after landing
+LANDING_EARTH_SIZE = 130
+LANDING_EARTH_CENTER = (1010, 265)
+GROUND_FADE = (0.68, 0.96)    # shares of the landing over which the detailed ground appears
+GROUND_COLOR = (205, 204, 202)
+GROUND_EXTRA = 130            # extra ground below the screen, seen while the horizon settles
+GROUND_CRATERS = 90
+GROUND_ROCKS = 90
+DUST_COLOR = (200, 198, 194)
+DUST_COUNT = 14
+DUST_SIZE = 320               # pixels
+DUST_RISE = 130               # pixels
+DUST_LEAD = 1.2               # starts this long before touchdown
+DUST_TIME = 4.0
 
 # Launch: hangar roof (pixels are for the roof as first seen)
 DOOR_TIME = 4.0               # seconds for the roof to open
@@ -162,25 +170,33 @@ ASCENT_DISTANCE = 150.0       # distance flown before the sky is fully dark
 ASCENT_MAX_SHARE = 0.4        # but never more than this share of the trip
 SKY_STOPS = [(0.0, (135, 203, 250)), (0.45, (95, 165, 235)), (0.7, (38, 75, 155))]  # then BACKGROUND_COLOR
 STARS_APPEAR = 0.42           # altitude where stars start to show
-CLOUD_COUNT = 26
+CLOUD_COUNT = 22
 CLOUD_KINDS = 4               # different cloud pictures
 CLOUD_SEED = 5
-CLOUD_PUFFS = 9
-CLOUD_PICTURE_SIZE = (480, 280)
+CLOUD_PICTURE_SIZE = (400, 320)
+CLOUD_AHEAD_HEIGHT = 0.46     # the big cloud the ship flies through: its altitude,
+CLOUD_AHEAD_WIDTH = 0.28      # width (fills the screen as the mist arrives),
+CLOUD_AHEAD_COVER = -0.06     # thickness (like CLOUD_COVER),
+CLOUD_AHEAD_SIZE = (1000, 800)  # picture size,
+CLOUD_AHEAD_SHIFT = 140       # most pixels steering can move it, so it can't be missed,
+CLOUD_AHEAD_FADE = (0.39, 0.43)  # and the altitudes where it dissolves, hidden by the mist
+CLOUD_DETAIL = 160            # size of the pattern clouds are made from (higher = finer, slower to start)
+CLOUD_COVER = 0.39            # higher = smaller, wispier clouds
+CLOUD_EDGE = 0.28             # how softly the edges thin out
 CLOUD_LOW = 0.20              # altitudes of the lowest and highest clouds
 CLOUD_HIGH = 0.50
 CLOUD_SPREAD = 0.75           # how far from dead ahead clouds reach (smaller = more to fly through)
-CLOUD_MIN_WIDTH = 0.07
-CLOUD_MAX_WIDTH = 0.14
+CLOUD_MIN_WIDTH = 0.09
+CLOUD_MAX_WIDTH = 0.16
 CLOUD_FADE_SIZE = 450         # pixels wide where a close cloud starts melting into mist
 CLOUD_GONE_SIZE = 800
 CLOUD_CACHE_SIZE = 30
 CLOUD_COLOR = (248, 251, 255)
-CLOUD_SHADE = (208, 224, 242)
-MIST_START = 0.26             # altitudes where the mist begins, is thickest, and has cleared
+CLOUD_SHADE = (166, 182, 206)  # the thick, shadowed underside
+MIST_START = 0.28             # altitudes where the mist begins, is thickest, and has cleared
 MIST_MIDDLE = 0.40
 MIST_END = 0.54
-MIST_MAX = 0.85
+MIST_MAX = 0.9
 
 # Launch: thruster glow
 THRUST_LEAD = 2.0             # starts this long before liftoff

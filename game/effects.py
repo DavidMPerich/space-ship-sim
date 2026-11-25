@@ -1,7 +1,6 @@
-"""Celebration and countdown visuals: outlined text and confetti."""
+"""Shared drawing helpers: easing, big outlined text, random texture and zoomed pictures."""
 
 import math
-import random
 
 import pygame
 
@@ -27,61 +26,43 @@ def draw_text_picture(text, size):
     return picture
 
 
-class ConfettiPiece:
-    def __init__(self, x, y, vx, vy, fall, color, phase, extra):
-        self.x = x
-        self.y = y
-        self.vx = vx
-        self.vy = vy
-        self.fall = fall    # steady falling speed
-        self.color = color
-        self.phase = phase  # where it is in its side-to-side sway and tumble
-        self.extra = extra  # burst pieces leave for good; the others start again at the top
+def smooth_share(value, start, end):
+    """How far value is from start to end, 0 to 1, easing gently at both ends."""
+    share = max(0.0, min(1.0, (value - start) / (end - start)))
+    return share * share * (3 - 2 * share)
 
 
-class Confetti:
-    def __init__(self, rng=None):
-        self.rng = rng or random.Random()
-        self.pieces = []
+def draw_zoomed(screen, picture, rect, smooth=True, alpha=255):
+    """Draw picture stretched to rect. Only the part on screen is scaled, so huge sizes stay cheap."""
+    shown = rect.clip(screen.get_rect())
+    if not shown.width or not shown.height:
+        return
+    width, height = picture.get_size()
+    across, down = rect.width / width, rect.height / height
+    left, top = int((shown.left - rect.left) / across), int((shown.top - rect.top) / down)
+    right = min(width, math.ceil((shown.right - rect.left) / across))
+    bottom = min(height, math.ceil((shown.bottom - rect.top) / down))
+    part = picture.subsurface((left, top, right - left, bottom - top))
+    target = (max(1, round(part.get_width() * across)), max(1, round(part.get_height() * down)))
+    resize = pygame.transform.smoothscale if smooth else pygame.transform.scale
+    zoomed = resize(part, target)
+    zoomed.set_alpha(alpha)
+    screen.blit(zoomed, (round(rect.left + left * across), round(rect.top + top * down)))
 
-    def start(self):
-        """Fresh confetti, waiting above the screen to drift down."""
-        self.pieces = []
-        for _ in range(config.CONFETTI_COUNT):
-            y = self.rng.uniform(-config.SCREEN_HEIGHT, -config.CONFETTI_SIZE)
-            self._add(self.rng.uniform(0, config.SCREEN_WIDTH), y, 0.0, 0.0, False)
 
-    def burst(self):
-        """A little fountain, for a button press."""
-        for _ in range(min(config.CONFETTI_BURST, config.CONFETTI_MAX - len(self.pieces))):
-            angle = self.rng.uniform(0, math.tau)
-            speed = config.CONFETTI_BURST_SPEED * self.rng.uniform(0.3, 1.0)
-            self._add(config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2,
-                      math.cos(angle) * speed, math.sin(angle) * speed, True)
-
-    def _add(self, x, y, vx, vy, extra):
-        self.pieces.append(ConfettiPiece(
-            x, y, vx, vy, self.rng.uniform(*config.CONFETTI_FALL), self.rng.choice(config.CONFETTI_COLORS),
-            self.rng.uniform(0, math.tau), extra))
-
-    def update(self, dt):
-        bottom = config.SCREEN_HEIGHT + config.CONFETTI_SIZE
-        for piece in self.pieces:
-            piece.phase += 3.0 * dt
-            if piece.extra:
-                piece.vy += config.CONFETTI_GRAVITY * dt
-                piece.x += piece.vx * dt
-                piece.y += piece.vy * dt
-            else:
-                piece.x += math.sin(piece.phase) * config.CONFETTI_SWAY * dt
-                piece.y += piece.fall * dt
-                if piece.y > bottom:
-                    piece.y = -config.CONFETTI_SIZE
-                    piece.x = self.rng.uniform(0, config.SCREEN_WIDTH)
-        self.pieces = [piece for piece in self.pieces if piece.y <= bottom]
-
-    def draw(self, screen):
-        for piece in self.pieces:
-            # A gentle tumble: the piece gets thinner and thicker as it turns.
-            height = config.CONFETTI_SIZE * (0.35 + 0.65 * abs(math.cos(piece.phase)))
-            screen.fill(piece.color, (piece.x, piece.y, config.CONFETTI_SIZE, height))
+def draw_noise(size, rng):
+    """A soft cloudy pattern: big random blobs, with finer and finer detail added. Brightness 0-255."""
+    cells = 5
+    picture = pygame.Surface((cells, cells), depth=24)
+    strength = 255
+    while True:
+        for x in range(cells):
+            for y in range(cells):
+                value = picture.get_at((x, y)).r if strength < 255 else 128
+                value = max(0, min(255, value + int(rng.uniform(-0.5, 0.5) * strength)))
+                picture.set_at((x, y), (value, value, value))
+        if cells >= size:
+            return pygame.transform.smoothscale(picture, (size, size))
+        cells *= 2
+        strength *= 0.55
+        picture = pygame.transform.smoothscale(picture, (cells, cells))

@@ -83,7 +83,7 @@ Build: a hangar roof seen from below (a button press or a wait opens its two doo
 a five second countdown ("5, 4, 3, 2, 1, BLAST OFF!"), with a thruster glow around the border from 2 seconds
 left that peaks just after liftoff and slowly fades → a climb through the clouds as the sky darkens and the stars
 brighten → flight →
-arrival celebration ("You made it to the Moon!", stars or confetti) → automatic restart after a pause.
+landing on the moon → arrival celebration ("You made it to the Moon!") → automatic restart after a pause.
 Timings live in `config.py`.
 Automated tests:
 - Scene transitions run in the right order with a fake clock.

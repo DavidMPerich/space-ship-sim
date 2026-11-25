@@ -44,9 +44,10 @@ Space-Ship-Sim/
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
 │   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
-│   ├── effects.py       # Outlined text and confetti
+│   ├── effects.py       # Shared drawing helpers: outlined text, texture, zooming
+│   ├── landing.py       # Landing on the moon: surface, horizon, dust
 │   ├── launch.py        # Hangar roof, sky, clouds and thruster glow
-│   └── scenes.py        # Ready, roof opening, countdown, flight, arrival celebration and restart
+│   └── scenes.py        # Ready, roof opening, countdown, flight, landing, arrival celebration and restart
 ├── tests/               # pytest, one file per plan step; runs headless
 └── assets/              # (planned)
     ├── images/
@@ -81,7 +82,8 @@ python3 main.py
    is gently limited so the moon is always in view at arrival.
 3. **Approach:** the moon starts as a small dot and grows steadily as distance decreases.
    A simple, picture-based progress indicator (a rocket icon moving from a little Earth to a finish line flag) beats numbers.
-4. **Arrival:** celebration (sound, confetti/stars, "You made it to the Moon!"), then auto-restart after a pause.
+4. **Arrival:** the ship lands on the moon (its edge becomes the horizon, with Earth in the sky), then a
+   celebration (sound, "You made it to the Moon!", no confetti), then auto-restart after a pause.
 
 There is **no failure state**: no crashing, no game over, no timers that punish. Steering changes
 the ship's heading, but it never changes distance or arrival, so the player can never miss the moon.
