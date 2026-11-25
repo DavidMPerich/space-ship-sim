@@ -132,6 +132,23 @@ BOB_SPEED = 2.5               # radians per second
 LEAN_DISTANCE = 80            # pixels the countdown numbers follow the stick
 LEAN_RATE = 5.0               # how eagerly they follow it
 
+# Sound (volumes from 0 to 1; replace any file in the folder with your own .wav of the same name)
+SOUND_FOLDER = "assets/sounds"
+MAX_VOLUME = 0.6              # nothing ever plays louder than this
+SOUND_RATE = 44100
+SOUND_BUFFER = 1024           # smaller = quicker beeps, but may crackle on a slow Pi
+SOUND_CHANNELS = 14           # how many sounds can play at once
+SOUND_EASE_RATE = 8.0         # how quickly steady sounds change volume
+SOUND_VOLUMES = {"button": 0.22, "count": 0.45, "roof_stop": 0.4, "touchdown": 0.55, "jingle": 0.45}
+ROOF_VOLUME = 0.35
+THRUSTER_VOLUME = 0.6         # at the strongest moment of liftoff
+LANDING_THRUST_VOLUME = 0.35
+LANDING_THRUST_RISE = 2.5     # seconds
+LANDING_THRUST_FALL = 1.5     # seconds
+ENGINE_SLOW_VOLUME = 0.12
+ENGINE_FAST_VOLUME = 0.28
+JINGLE_DELAY = 1.0            # seconds after touchdown
+
 # Landing
 LANDING_TIME = 7.0            # seconds from the end of the flight to touchdown
 LANDING_SIZE = 5200           # pixels across the moon has grown to at touchdown

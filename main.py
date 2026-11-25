@@ -7,6 +7,7 @@ import sys
 import pygame
 
 import config
+from game import audio
 from game.input import InputHandler
 from game.scenes import Game
 
@@ -65,6 +66,7 @@ def is_quit_event(event):
 def run(argv=None):
     """Run the game. Returns an exit code."""
     args = parse_args(argv)
+    audio.prepare()
     pygame.init()
     try:
         screen = create_screen(args.windowed)

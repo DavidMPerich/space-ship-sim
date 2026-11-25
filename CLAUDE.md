@@ -43,15 +43,17 @@ Space-Ship-Sim/
 │   ├── rocket.py        # Player state: speed, turning, heading, distance to moon
 │   ├── input.py         # Unified input: keyboard (joystick and buttons planned)
 │   ├── moon.py          # Moon that grows as distance shrinks, and the progress indicator
-│   ├── audio.py         # (planned) Engine rumble, beeps, arrival sounds
+│   ├── audio.py         # Engine, thrusters, roof, beeps, landing and jingle; silent if files are missing
 │   ├── effects.py       # Shared drawing helpers: outlined text, texture, zooming
 │   ├── landing.py       # Landing on the moon: surface, horizon, dust
 │   ├── launch.py        # Hangar roof, sky, clouds and thruster glow
 │   └── scenes.py        # Ready, roof opening, countdown, flight, landing, arrival celebration and restart
+├── tools/
+│   └── make_sounds.py   # Generates assets/sounds (run on a desktop, not by the game)
 ├── tests/               # pytest, one file per plan step; runs headless
-└── assets/              # (planned)
-    ├── images/
-    └── sounds/
+└── assets/
+    ├── images/          # (planned)
+    └── sounds/          # Generated .wav files; replace any with your own of the same name
 ```
 
 ## How to run
@@ -136,4 +138,3 @@ the ship's heading, but it never changes distance or arrival, so the player can 
 - Raspberry Pi model and display resolution
 - Exact input hardware (USB arcade encoder vs. GPIO-wired buttons)
 - Whether to add a cockpit frame/overlay
-- Sound assets (source or create)

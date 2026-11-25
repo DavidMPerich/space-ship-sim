@@ -5,7 +5,7 @@ import math
 import pygame
 
 import config
-from game import effects, launch
+from game import audio, effects, launch
 from game.input import InputState
 from game.landing import Landing
 from game.moon import Moon, ProgressIndicator
@@ -84,7 +84,8 @@ class Flight:
 class Game:
     """Runs the scenes in order. Buttons can start the launch, but never skip anything else."""
 
-    def __init__(self):
+    def __init__(self, sound=None):
+        self.audio = sound or audio.Audio()
         self.flight = Flight()
         self.hangar = launch.Hangar()
         self.glow = launch.ThrusterGlow()
@@ -113,7 +114,12 @@ class Game:
 
     def begin_countdown(self):
         self._enter(COUNTDOWN)
+        self.audio.play("roof_stop")
+        self._show_number()
+
+    def _show_number(self):
         self.pop = 1.0
+        self.audio.play("count")
 
     def begin_flight(self):
         self._enter(FLIGHT)
@@ -123,10 +129,13 @@ class Game:
 
     def begin_arrival(self):
         self._enter(ARRIVAL)
+        self.audio.play("touchdown")
 
     def update(self, controls, dt):
         dt = max(0.0, min(config.MAX_FRAME_TIME, dt))
         pressed = self._new_press(controls)
+        if pressed:
+            self.audio.play("button")
         self.lean = _ease(self.lean, controls.steer, config.LEAN_RATE, dt)
         self.pop = _ease(self.pop, 0.0, config.POP_RATE, dt)
         self.time += dt
@@ -143,10 +152,11 @@ class Game:
         else:
             self._update_arrival(pressed, dt)
         self._update_fade(dt)
+        self._update_sound(dt)
 
     def _new_press(self, controls):
         """True when any button went down this frame. Holding one doesn't count."""
-        pressed = (controls.start_pressed or (controls.faster and not self.last.faster)
+        pressed = (controls.presses > 0 or controls.start_pressed or (controls.faster and not self.last.faster)
                    or (controls.slower and not self.last.slower))
         self.last = controls
         return pressed
@@ -165,7 +175,7 @@ class Game:
         if self.time >= config.COUNTDOWN_STEP * len(self.numbers):
             self.begin_flight()
         elif self.number_index(self.time) != self.number_index(self.time - dt):
-            self.pop = 1.0
+            self._show_number()
         elif pressed:
             self.pop = max(self.pop, config.POP_PRESS)
 
@@ -181,6 +191,8 @@ class Game:
 
     def _update_arrival(self, pressed, dt):
         self.flight.update(InputState(), dt)
+        if self.time - dt < config.JINGLE_DELAY <= self.time:
+            self.audio.play("jingle")
         if pressed:
             self.pop = 1.0
         if self.time >= config.ARRIVAL_PAUSE:
@@ -190,6 +202,23 @@ class Game:
         leaving = self.scene == ARRIVAL and self.time >= config.ARRIVAL_PAUSE - config.SCENE_FADE
         step = dt / config.SCENE_FADE
         self.fade = max(0.0, min(1.0, self.fade + (step if leaving else -step)))
+
+    def _update_sound(self, dt):
+        """Steady sounds follow what is on screen."""
+        roof = engine_flow = 0.0
+        thrust = config.THRUSTER_VOLUME * self.thrust()
+        if self.scene == OPENING:
+            roof = config.ROOF_VOLUME * math.sin(math.pi * min(1.0, self.time / config.DOOR_TIME))
+        elif self.scene == LANDING:
+            thrust = config.LANDING_THRUST_VOLUME * audio.landing_thrust(self.time)
+        if self.scene in (FLIGHT, LANDING, ARRIVAL):
+            engine_flow = self.flight.star_flow
+        low, high = audio.engine_volumes(self.flight.rocket.speed, engine_flow)
+        self.audio.set_loop("engine_low", low)
+        self.audio.set_loop("engine_high", high)
+        self.audio.set_loop("thrusters", thrust)
+        self.audio.set_loop("roof", roof)
+        self.audio.update(dt)
 
     def doors_open(self):
         """0 = roof shut, 1 = wide open. Starts and stops gently."""

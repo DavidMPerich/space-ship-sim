@@ -23,6 +23,11 @@ Keyboard (remap in `config.py`):
 
 Add `--debug` to show live input and rocket values on screen. On Windows, use `python` instead of `python3`.
 
+## Sounds
+
+The sounds in `assets/sounds` were made with `python3 tools/make_sounds.py`. To use your own, replace a file
+with a `.wav` of the same name. Volumes are in `config.py`. Missing sounds are simply silent.
+
 ## Develop and test
 
 ```bash

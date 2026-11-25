@@ -18,6 +18,7 @@ class InputState:
     faster: bool = False        # held
     slower: bool = False        # held
     start_pressed: bool = False  # True only on the frame a start button went down
+    presses: int = 0            # how many buttons went down this frame (steering isn't a button)
 
 
 def _key_codes(names):
@@ -33,16 +34,21 @@ class InputHandler:
         self.faster_keys = _key_codes(config.KEYS_FASTER)
         self.slower_keys = _key_codes(config.KEYS_SLOWER)
         self.start_keys = _key_codes(config.KEYS_START)
+        self.button_keys = self.faster_keys | self.slower_keys | self.start_keys
         self.held = set()
         self.start_pressed = False
+        self.presses = 0
 
     def begin_frame(self):
         """Clear one-frame events (presses). Held keys carry over."""
         self.start_pressed = False
+        self.presses = 0
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             self.held.add(event.key)
+            if event.key in self.button_keys:
+                self.presses += 1
             if event.key in self.start_keys:
                 self.start_pressed = True
         elif event.type == pygame.KEYUP:
@@ -59,4 +65,5 @@ class InputHandler:
             faster=bool(self.held & self.faster_keys),
             slower=bool(self.held & self.slower_keys),
             start_pressed=self.start_pressed,
+            presses=self.presses,
         )
