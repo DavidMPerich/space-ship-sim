@@ -23,8 +23,8 @@ Avoid adding heavy dependencies. Anything new must install cleanly on Raspberry 
 ## Project status
 
 `docs/plan.md` has the step-by-step build plan and the sign-off log. Work one step at a time, and only
-start the next step after the user signs off the current one. Steps 0–5 (skeleton, keyboard input,
-rocket state, starfield, flight scene, moon and progress indicator) are signed off.
+start the next step after the user signs off the current one. Steps 0–6 (skeleton, keyboard input,
+rocket state, starfield, flight scene, moon and progress indicator, scenes) are signed off.
 
 ## Project structure
 
@@ -82,7 +82,7 @@ python3 main.py
    is gently limited so the moon is always in view at arrival.
 3. **Approach:** the moon starts as a small dot and grows steadily as distance decreases.
    A simple, picture-based progress indicator (a rocket icon moving from a little Earth to a finish line flag) beats numbers.
-4. **Arrival:** the ship lands on the moon (its edge becomes the horizon, with Earth in the sky), then a
+4. **Arrival:** the ship lands on the moon (its edge becomes the horizon), then a
    celebration (sound, "You made it to the Moon!", no confetti), then auto-restart after a pause.
 
 There is **no failure state**: no crashing, no game over, no timers that punish. Steering changes

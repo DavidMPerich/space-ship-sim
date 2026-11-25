@@ -8,7 +8,7 @@ import pygame
 
 import config
 from game import effects
-from game.moon import draw_earth_picture, moon_center
+from game.moon import moon_center
 
 
 def _closest():
@@ -101,7 +101,6 @@ class Landing:
     def __init__(self, moon_picture):
         self.moon_picture = moon_picture
         self.ground = draw_ground_picture()
-        self.earth = draw_earth_picture(config.LANDING_EARTH_SIZE)
         self.dust = draw_dust_picture(config.DUST_SIZE)
         rng = random.Random(config.MOON_SEED)
         self.puffs = [(rng.uniform(-1, 1), rng.uniform(0.4, 1.0)) for _ in range(config.DUST_COUNT)]
@@ -109,7 +108,6 @@ class Landing:
     def draw(self, screen, seconds, speed, heading):
         """seconds since the landing began. Afterward it stays on the ground."""
         share = seconds / config.LANDING_TIME
-        self._draw_earth(screen, effects.smooth_share(share, 0.65, 1.0))
         ground = effects.smooth_share(share, *config.GROUND_FADE)
         top = horizon_y(seconds)
         if ground < 1.0:
@@ -122,11 +120,6 @@ class Landing:
             # It rises into place with the horizon.
             screen.blit(self.ground, (0, round(top)))
         self._draw_dust(screen, seconds - config.LANDING_TIME + config.DUST_LEAD)
-
-    def _draw_earth(self, screen, strength):
-        if strength > 0.0:
-            self.earth.set_alpha(round(255 * strength))
-            screen.blit(self.earth, self.earth.get_rect(center=config.LANDING_EARTH_CENTER))
 
     def _draw_dust(self, screen, seconds):
         """Dust drifts up and outward around touchdown, then settles."""
